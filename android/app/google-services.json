@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "386966654332",
+    "project_id": "campusmentor-2485c",
+    "storage_bucket": "campusmentor-2485c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386966654332:android:472e0497e4a3ea8bc428f9",
+        "android_client_info": {
+          "package_name": "com.example.campus_mentor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCq3xUOQAgWWN_NwVcwYL2BCeauKfe9auk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
