@@ -56,3 +56,7 @@ ios/Flutter/flutter_export_environment.sh
 
 # Firebase configuration/secrets (if any local environments)
 .firebase/
+
+# Ignored binary files
+*.apk
+

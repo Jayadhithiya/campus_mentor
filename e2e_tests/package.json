@@ -2,9 +2,9 @@
   "name": "strivecampus-e2e-tests",
   "version": "1.0.0",
   "description": "E2E Selenium Web and Appium Mobile tests for StriveCampus",
-  "main": "selenium_web/run_web_tests.js",
+  "main": "selenium_for_web_app_testing/run_web_tests.js",
   "scripts": {
-    "test:web": "node selenium_web/run_web_tests.js",
+    "test:web": "node selenium_for_web_app_testing/run_web_tests.js",
     "test:mobile": "node appium_mobile/run_mobile_tests.js"
   },
   "dependencies": {

@@ -8,6 +8,9 @@ import 'package:strive_campus/screens/home/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:strive_campus/services/user_service.dart';
 
+import 'package:flutter/semantics.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() async {
@@ -16,6 +19,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await UserService.initNotifications();
+  
+  if (kIsWeb) {
+    SemanticsBinding.instance.ensureSemantics();
+  }
   
   final prefs = await SharedPreferences.getInstance();
   final isDark = prefs.getBool('isDark') ?? false;
