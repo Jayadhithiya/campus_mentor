@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # ─────────────────────────────────────────────────────────────────────────────
 # Deploy Workflow — GitHub Pages
 #
@@ -18,8 +19,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: "pages"
+  cancel-in-progress: false
+
 
 env:
   FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
