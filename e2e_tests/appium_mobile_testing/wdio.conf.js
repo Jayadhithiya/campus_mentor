@@ -8,11 +8,6 @@ exports.config = {
   },
   port: 4723,
   path: '/',
-  services: [['appium', {
-    command: 'node',
-    args: [path.join(__dirname, 'node_modules', '.bin', 'appium')],
-    logPath: path.join(__dirname, 'reports')
-  }]],
   specs: [path.join(__dirname, 'test/specs/**/*.js')],
   maxInstances: 1,
   capabilities: [{

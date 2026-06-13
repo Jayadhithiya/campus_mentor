@@ -96,7 +96,24 @@ jobs:
         working-directory: e2e_tests/appium_mobile_testing
         run: npx appium driver install uiautomator2 2>&1 | grep -v "already installed" || true
 
-      # 13. Run Appium tests inside Android Emulator
+      # 13. Start Appium server as a persistent background process
+      - name: Start Appium server
+        working-directory: e2e_tests/appium_mobile_testing
+        run: |
+          mkdir -p reports
+          nohup node_modules/.bin/appium > reports/appium.log 2>&1 &
+          echo "APPIUM_PID=$!" >> $GITHUB_ENV
+          echo "Waiting for Appium to be ready on port 4723..."
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:4723/status > /dev/null 2>&1; then
+              echo "✅ Appium is ready!"
+              break
+            fi
+            echo "  Attempt $i/30 — waiting 2s..."
+            sleep 2
+          done
+
+      # 14. Run Appium tests inside Android Emulator
       - name: Run Appium Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -106,7 +123,12 @@ jobs:
           disable-animations: true
           script: bash -c "cd $GITHUB_WORKSPACE/e2e_tests/appium_mobile_testing && node_modules/.bin/wdio wdio.conf.js"
 
-      # 14. Upload Appium Excel Report
+      # 15. Stop Appium server
+      - name: Stop Appium server
+        if: always()
+        run: kill $APPIUM_PID 2>/dev/null || true
+
+      # 16. Upload Appium Excel Report
       - name: Upload Appium Excel report
         if: always()
         uses: actions/upload-artifact@v4
@@ -116,7 +138,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # 15. Upload failure screenshots
+      # 17. Upload failure screenshots
       - name: Upload Appium failure screenshots
         if: always()
         uses: actions/upload-artifact@v4
