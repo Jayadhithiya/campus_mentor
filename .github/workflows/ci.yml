@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CI Workflow — Runs on every push and pull request to main
+#
+# Steps:
+#   1. Checkout code
+#   2. Set up Flutter SDK
+#   3. Install dependencies (flutter pub get)
+#   4. Analyze code for lint/type errors (flutter analyze)
+#   5. Run widget/unit tests (flutter test)
+#   6. Build release APK → uploaded as downloadable artifact
+#   7. Build Flutter Web release → used by subsequent deploy job
+# ─────────────────────────────────────────────────────────────────────────────
+name: CI — Flutter Build & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Lint + Test + Build ───────────────────────────────────────────
+  build-and-test:
+    name: Analyze · Test · Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Flutter (stable channel, version pinned to SDK constraint)
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      # 3. Install Dart/Flutter packages
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. Static analysis (fails pipeline on errors)
+      - name: Flutter analyze
+        run: flutter analyze --no-fatal-infos
+
+      # 5. Run unit & widget tests
+      - name: Flutter test
+        run: flutter test --coverage
+
+      # 6. Build release APK
+      - name: Build release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      # 7. Upload APK as downloadable artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+
+      # 8. Build Flutter Web (used by deploy-pages job)
+      - name: Build Flutter Web
+        run: flutter build web --release --base-href /campus_mentor/
+
+      # 9. Upload web build for deploy job
+      - name: Upload web build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-web-build
+          path: build/web/
+          retention-days: 1

@@ -163,6 +163,9 @@ async function main() {
     } catch (excelErr) {
       console.error('❌ Failed to compile Excel report: ', excelErr.message);
     }
+
+    // Exit with non-zero code if not deployable — this fails the CI pipeline
+    process.exit(deployable ? 0 : 1);
   }
 }
 

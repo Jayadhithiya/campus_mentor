@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy Workflow — GitHub Pages
+#
+# Triggered only on push to main (not on PRs) after CI passes.
+#
+# Steps:
+#   1. Download the web build artifact produced by CI
+#   2. Deploy the build/web/ folder to GitHub Pages
+#
+# ⚠️  REQUIRED SETUP (one-time, in GitHub UI):
+#   Repository → Settings → Pages → Source → "GitHub Actions"
+# ─────────────────────────────────────────────────────────────────────────────
+name: Deploy — GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+# Grant Pages write permission to GITHUB_TOKEN
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy at a time; cancel in-progress if a new push comes in
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  # ── Job 1: Build ──────────────────────────────────────────────────────────
+  build:
+    name: Build Flutter Web
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Build for the GitHub Pages sub-path  /campus_mentor/
+      - name: Build Flutter Web for GitHub Pages
+        run: flutter build web --release --base-href /campus_mentor/
+
+      # Configure Pages uploader
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # Package the build/web directory as a Pages artifact
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web/
+
+  # ── Job 2: Deploy ─────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

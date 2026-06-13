@@ -1,0 +1,121 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Selenium E2E Tests — Runs AFTER deploy-pages completes on push to main
+#
+# Why Selenium (not Flutter integration_test)?
+#   Your existing e2e_tests/selenium_for_web_app_testing suite is already
+#   mature (105 tests across 4 suites) and targets the Flutter Web app at
+#   http://127.0.0.1:8080. This workflow reuses that investment without
+#   rewriting tests.
+#
+# Steps:
+#   1. Build Flutter Web
+#   2. Serve the web build locally on port 8080 (Python http.server)
+#   3. Install Node dependencies for the Selenium suite
+#   4. Run the Selenium tests (headless Chrome already configured in tests)
+#   5. Upload test reports and failure screenshots as artifacts
+#   6. Fail the pipeline if any test exits non-zero
+# ─────────────────────────────────────────────────────────────────────────────
+name: E2E — Selenium Web Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # Allow manual triggering from the Actions tab
+
+jobs:
+  selenium-e2e:
+    name: Selenium E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Flutter setup
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      # 3. Install Flutter dependencies
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      # 4. Build Flutter Web (base-href = / so tests hit http://127.0.0.1:8080/)
+      - name: Build Flutter Web
+        run: flutter build web --release --base-href /
+
+      # 5. Install Chrome (GitHub ubuntu-latest already has it, but pin version)
+      - name: Verify Chrome installation
+        run: |
+          google-chrome --version || chromium-browser --version
+
+      # 6. Serve Flutter web build on port 8080 in the background
+      - name: Start Flutter Web server on port 8080
+        run: |
+          cd build/web
+          python3 -m http.server 8080 &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          # Wait until server is ready
+          for i in $(seq 1 20); do
+            curl -s http://127.0.0.1:8080 > /dev/null && echo "Server ready" && break
+            echo "Waiting for server... ($i)"
+            sleep 2
+          done
+
+      # 7. Install Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: e2e_tests/package-lock.json
+
+      # 8. Install Selenium / test dependencies
+      - name: Install E2E test dependencies
+        working-directory: e2e_tests
+        run: npm ci
+
+      # 9. Create reports output directory
+      - name: Create reports directory
+        run: mkdir -p reports/selenium_test_reports
+
+      # 10. Run Selenium test suite
+      #     The test runner exits non-zero if pass rate < 98% — that fails the job.
+      - name: Run Selenium Web Tests
+        working-directory: e2e_tests
+        run: node selenium_for_web_app_testing/run_web_tests.js
+        env:
+          # Override APP_URL via env if tests support it (they currently hardcode 127.0.0.1:8080)
+          APP_BASE_URL: http://127.0.0.1:8080
+
+      # 11. Upload failure screenshots (always, even if tests fail)
+      - name: Upload failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-failure-screenshots
+          path: e2e_tests/selenium_for_web_app_testing/screenshots/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # 12. Upload Excel test report
+      - name: Upload Selenium Excel report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-report
+          path: |
+            e2e_tests/selenium_web_report.xlsx
+            reports/selenium_test_reports/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # 13. Stop the background web server
+      - name: Stop web server
+        if: always()
+        run: |
+          kill $SERVER_PID 2>/dev/null || true
