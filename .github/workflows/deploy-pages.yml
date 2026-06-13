@@ -1,13 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Deploy Workflow — GitHub Pages
 #
-# Triggered only on push to main (not on PRs) after CI passes.
+# Triggered on push to main only (not PRs).
+# Uses direct shell Flutter install — no Node 20 action = no deprecation warnings.
 #
-# Steps:
-#   1. Download the web build artifact produced by CI
-#   2. Deploy the build/web/ folder to GitHub Pages
-#
-# ⚠️  REQUIRED SETUP (one-time, in GitHub UI):
+# ⚠️  REQUIRED SETUP (already done):
 #   Repository → Settings → Pages → Source → "GitHub Actions"
 # ─────────────────────────────────────────────────────────────────────────────
 name: Deploy — GitHub Pages
@@ -16,19 +13,21 @@ on:
   push:
     branches: [main]
 
-# Grant Pages write permission to GITHUB_TOKEN
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Only one deploy at a time; cancel in-progress if a new push comes in
 concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  FLUTTER_VERSION: '3.32.0'
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter
+
 jobs:
-  # ── Job 1: Build ──────────────────────────────────────────────────────────
+  # ── Job 1: Build Flutter Web ──────────────────────────────────────────────
   build:
     name: Build Flutter Web
     runs-on: ubuntu-latest
@@ -37,17 +36,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      # Cache Flutter SDK
+      - name: Cache Flutter SDK
+        id: flutter-cache
+        uses: actions/cache@v4
         with:
-          flutter-version: '3.32.0'
-          channel: 'stable'
-          cache: true
+          path: ${{ env.FLUTTER_HOME }}
+          key: flutter-${{ env.FLUTTER_VERSION }}-linux
 
-      - name: Install dependencies
+      # Install Flutter only on cache miss
+      - name: Install Flutter SDK
+        if: steps.flutter-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${{ env.FLUTTER_VERSION }}-stable.tar.xz \
+            -o /tmp/flutter.tar.xz
+          mkdir -p ${{ env.FLUTTER_HOME }}
+          tar -xf /tmp/flutter.tar.xz -C ${{ env.FLUTTER_HOME }} --strip-components=1
+
+      - name: Add Flutter to PATH
+        run: echo "${{ env.FLUTTER_HOME }}/bin" >> $GITHUB_PATH
+
+      - name: flutter pub get
         run: flutter pub get
 
-      # Build for the GitHub Pages sub-path  /campus_mentor/
+      # Build for the GitHub Pages sub-path /campus_mentor/
       - name: Build Flutter Web for GitHub Pages
         run: flutter build web --release --base-href /campus_mentor/
 
@@ -55,13 +67,13 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Package the build/web directory as a Pages artifact
+      # Package build/web as a Pages artifact
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web/
 
-  # ── Job 2: Deploy ─────────────────────────────────────────────────────────
+  # ── Job 2: Deploy to GitHub Pages ─────────────────────────────────────────
   deploy:
     name: Deploy to GitHub Pages
     needs: build

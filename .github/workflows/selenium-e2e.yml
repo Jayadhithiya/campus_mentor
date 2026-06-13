@@ -1,26 +1,31 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Selenium E2E Tests — Runs AFTER deploy-pages completes on push to main
+# Selenium E2E Tests — Runs after every push to main
 #
-# Why Selenium (not Flutter integration_test)?
-#   Your existing e2e_tests/selenium_for_web_app_testing suite is already
-#   mature (105 tests across 4 suites) and targets the Flutter Web app at
-#   http://127.0.0.1:8080. This workflow reuses that investment without
-#   rewriting tests.
+# Uses direct shell Flutter install + Node 22 — zero Node 20 deprecation
+# warnings across the entire workflow.
 #
 # Steps:
-#   1. Build Flutter Web
-#   2. Serve the web build locally on port 8080 (Python http.server)
-#   3. Install Node dependencies for the Selenium suite
-#   4. Run the Selenium tests (headless Chrome already configured in tests)
-#   5. Upload test reports and failure screenshots as artifacts
-#   6. Fail the pipeline if any test exits non-zero
+#   1. Checkout
+#   2. Install Flutter (shell, cached)
+#   3. flutter pub get
+#   4. Build Flutter Web (base-href=/ so tests hit http://127.0.0.1:8080/)
+#   5. Serve web build on port 8080 via Python
+#   6. Install Node.js 22
+#   7. npm ci for Selenium suite
+#   8. Run 105 Selenium tests (headless Chrome)
+#   9. Upload failure screenshots + Excel report
+#  10. Fail pipeline if pass rate < 98%  (process.exit(1) in runner)
 # ─────────────────────────────────────────────────────────────────────────────
 name: E2E — Selenium Web Tests
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:   # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.32.0'
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter
 
 jobs:
   selenium-e2e:
@@ -32,67 +37,71 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Flutter setup
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      # 2. Cache Flutter SDK
+      - name: Cache Flutter SDK
+        id: flutter-cache
+        uses: actions/cache@v4
         with:
-          flutter-version: '3.32.0'
-          channel: 'stable'
-          cache: true
+          path: ${{ env.FLUTTER_HOME }}
+          key: flutter-${{ env.FLUTTER_VERSION }}-linux
 
-      # 3. Install Flutter dependencies
-      - name: Install Flutter dependencies
+      # 3. Install Flutter (only on cache miss)
+      - name: Install Flutter SDK
+        if: steps.flutter-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${{ env.FLUTTER_VERSION }}-stable.tar.xz \
+            -o /tmp/flutter.tar.xz
+          mkdir -p ${{ env.FLUTTER_HOME }}
+          tar -xf /tmp/flutter.tar.xz -C ${{ env.FLUTTER_HOME }} --strip-components=1
+
+      # 4. Add Flutter to PATH
+      - name: Add Flutter to PATH
+        run: echo "${{ env.FLUTTER_HOME }}/bin" >> $GITHUB_PATH
+
+      # 5. Install Flutter dependencies
+      - name: flutter pub get
         run: flutter pub get
 
-      # 4. Build Flutter Web (base-href = / so tests hit http://127.0.0.1:8080/)
+      # 6. Build Flutter Web (base-href=/ so Selenium hits http://127.0.0.1:8080/)
       - name: Build Flutter Web
         run: flutter build web --release --base-href /
 
-      # 5. Install Chrome (GitHub ubuntu-latest already has it, but pin version)
-      - name: Verify Chrome installation
-        run: |
-          google-chrome --version || chromium-browser --version
-
-      # 6. Serve Flutter web build on port 8080 in the background
+      # 7. Serve Flutter web build on port 8080
       - name: Start Flutter Web server on port 8080
         run: |
           cd build/web
           python3 -m http.server 8080 &
           echo "SERVER_PID=$!" >> $GITHUB_ENV
-          # Wait until server is ready
           for i in $(seq 1 20); do
-            curl -s http://127.0.0.1:8080 > /dev/null && echo "Server ready" && break
-            echo "Waiting for server... ($i)"
+            curl -s http://127.0.0.1:8080 > /dev/null && echo "Server ready on port 8080" && break
+            echo "Waiting for server... ($i/20)"
             sleep 2
           done
 
-      # 7. Install Node.js
-      - name: Set up Node.js
+      # 8. Set up Node.js 22 (no deprecation warning)
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: e2e_tests/package-lock.json
 
-      # 8. Install Selenium / test dependencies
+      # 9. Install Selenium / test dependencies
       - name: Install E2E test dependencies
         working-directory: e2e_tests
         run: npm ci
 
-      # 9. Create reports output directory
+      # 10. Create output directories
       - name: Create reports directory
         run: mkdir -p reports/selenium_test_reports
 
-      # 10. Run Selenium test suite
-      #     The test runner exits non-zero if pass rate < 98% — that fails the job.
+      # 11. Run Selenium test suite
+      #     runner exits 1 if pass rate < 98% → fails this job → pipeline fails
       - name: Run Selenium Web Tests
         working-directory: e2e_tests
         run: node selenium_for_web_app_testing/run_web_tests.js
-        env:
-          # Override APP_URL via env if tests support it (they currently hardcode 127.0.0.1:8080)
-          APP_BASE_URL: http://127.0.0.1:8080
 
-      # 11. Upload failure screenshots (always, even if tests fail)
+      # 12. Upload failure screenshots (always, even if tests fail)
       - name: Upload failure screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -102,7 +111,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      # 12. Upload Excel test report
+      # 13. Upload Excel test report
       - name: Upload Selenium Excel report
         if: always()
         uses: actions/upload-artifact@v4
@@ -114,8 +123,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # 13. Stop the background web server
+      # 14. Stop the background web server
       - name: Stop web server
         if: always()
-        run: |
-          kill $SERVER_PID 2>/dev/null || true
+        run: kill $SERVER_PID 2>/dev/null || true

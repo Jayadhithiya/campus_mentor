@@ -1,14 +1,17 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # CI Workflow — Runs on every push and pull request to main
 #
+# Uses a direct shell-based Flutter install (no Node.js action = no Node 20
+# deprecation warnings). Flutter SDK is cached for fast subsequent runs.
+#
 # Steps:
 #   1. Checkout code
-#   2. Set up Flutter SDK
-#   3. Install dependencies (flutter pub get)
-#   4. Analyze code for lint/type errors (flutter analyze)
-#   5. Run widget/unit tests (flutter test)
-#   6. Build release APK → uploaded as downloadable artifact
-#   7. Build Flutter Web release → used by subsequent deploy job
+#   2. Cache + install Flutter SDK directly via shell
+#   3. flutter pub get
+#   4. flutter analyze
+#   5. flutter test
+#   6. Build release APK → uploaded as artifact
+#   7. Build Flutter Web → uploaded as artifact
 # ─────────────────────────────────────────────────────────────────────────────
 name: CI — Flutter Build & Test
 
@@ -18,8 +21,11 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FLUTTER_VERSION: '3.32.0'
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter
+
 jobs:
-  # ── Job 1: Lint + Test + Build ───────────────────────────────────────────
   build-and-test:
     name: Analyze · Test · Build
     runs-on: ubuntu-latest
@@ -29,31 +35,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Flutter (stable channel, version pinned to SDK constraint)
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      # 2. Cache Flutter SDK (keyed by version so cache invalidates on upgrade)
+      - name: Cache Flutter SDK
+        id: flutter-cache
+        uses: actions/cache@v4
         with:
-          flutter-version: '3.32.0'
-          channel: 'stable'
-          cache: true
+          path: ${{ env.FLUTTER_HOME }}
+          key: flutter-${{ env.FLUTTER_VERSION }}-linux
 
-      # 3. Install Dart/Flutter packages
-      - name: Install dependencies
+      # 3. Install Flutter SDK directly (only when cache misses)
+      - name: Install Flutter SDK
+        if: steps.flutter-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${{ env.FLUTTER_VERSION }}-stable.tar.xz \
+            -o /tmp/flutter.tar.xz
+          mkdir -p ${{ env.FLUTTER_HOME }}
+          tar -xf /tmp/flutter.tar.xz -C ${{ env.FLUTTER_HOME }} --strip-components=1
+
+      # 4. Add Flutter to PATH
+      - name: Add Flutter to PATH
+        run: echo "${{ env.FLUTTER_HOME }}/bin" >> $GITHUB_PATH
+
+      # 5. Verify Flutter installation
+      - name: Flutter version
+        run: flutter --version
+
+      # 6. Install Dart/Flutter packages
+      - name: flutter pub get
         run: flutter pub get
 
-      # 4. Static analysis (fails pipeline on errors)
-      - name: Flutter analyze
+      # 7. Static analysis — fails pipeline on errors
+      - name: flutter analyze
         run: flutter analyze --no-fatal-infos
 
-      # 5. Run unit & widget tests
-      - name: Flutter test
-        run: flutter test --coverage
+      # 8. Run unit & widget tests
+      - name: flutter test
+        run: flutter test
 
-      # 6. Build release APK
+      # 9. Build release APK
       - name: Build release APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      # 7. Upload APK as downloadable artifact
+      # 10. Upload APK as downloadable artifact (available for 14 days)
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -61,11 +84,11 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
 
-      # 8. Build Flutter Web (used by deploy-pages job)
+      # 11. Build Flutter Web
       - name: Build Flutter Web
         run: flutter build web --release --base-href /campus_mentor/
 
-      # 9. Upload web build for deploy job
+      # 12. Upload web build artifact (1 day — used only by deploy job)
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
         with:
