@@ -25,6 +25,21 @@ exports.config = {
     timeout: 60000
   },
   reporters: ['spec'],
+  onPrepare: function (config, capabilities) {
+    const fs = require('fs');
+    const tempDir = path.join(__dirname, 'reports', 'temp_results');
+    if (fs.existsSync(tempDir)) {
+      try {
+        const files = fs.readdirSync(tempDir);
+        for (const file of files) {
+          fs.unlinkSync(path.join(tempDir, file));
+        }
+        fs.rmdirSync(tempDir);
+      } catch (e) {
+        console.error('Failed to clean temp results in onPrepare:', e);
+      }
+    }
+  },
   beforeSession: function (config, capabilities, specs) {
     // ensure report directories exist
     const fs = require('fs');
@@ -39,8 +54,23 @@ exports.config = {
       const screenshotPath = path.join(__dirname, 'reports', 'screenshots', `${test.title.replace(/\s+/g, '_')}.png`);
       await browser.saveScreenshot(screenshotPath);
     }
+    // Try to extract test ID from test parent suite title, test title, or file name
+    let testId = null;
+    if (test.file) {
+      const fileMatch = path.basename(test.file).match(/([A-Z]{2}\d{3})/);
+      if (fileMatch) testId = fileMatch[1];
+    }
+    if (!testId && test.parent) {
+      const suiteTitle = typeof test.parent === 'object' ? test.parent.title : String(test.parent);
+      const suiteMatch = suiteTitle.match(/([A-Z]{2}\d{3})/);
+      if (suiteMatch) testId = suiteMatch[1];
+    }
+    if (!testId && test.title) {
+      const titleMatch = test.title.match(/([A-Z]{2}\d{3})/);
+      if (titleMatch) testId = titleMatch[1];
+    }
     // Record result in Excel report
-    await excelReporter.recordTest({ title: test.title, passed, duration, error });
+    await excelReporter.recordTest({ testId, title: test.title, passed, duration, error });
   },
   onComplete: async function (exitCode, config, capabilities, results) {
     // Generate the Excel report after all tests finish
