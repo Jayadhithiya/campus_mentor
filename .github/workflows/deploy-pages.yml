@@ -1,11 +1,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Deploy Workflow — GitHub Pages
 #
-# Triggered on push to main only (not PRs).
-# Uses direct shell Flutter install — no Node 20 action = no deprecation warnings.
+# Flutter installed via git clone (stable). No Node.js actions used for
+# Flutter setup → zero Node 20 deprecation warnings.
 #
-# ⚠️  REQUIRED SETUP (already done):
-#   Repository → Settings → Pages → Source → "GitHub Actions"
+# ⚠️  REQUIRED: Settings → Pages → Source → "GitHub Actions"
 # ─────────────────────────────────────────────────────────────────────────────
 name: Deploy — GitHub Pages
 
@@ -23,8 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: '3.32.0'
-  FLUTTER_HOME: ${{ github.workspace }}/.flutter
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
 
 jobs:
   # ── Job 1: Build Flutter Web ──────────────────────────────────────────────
@@ -42,19 +40,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.FLUTTER_HOME }}
-          key: flutter-${{ env.FLUTTER_VERSION }}-linux
+          key: flutter-stable-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            flutter-stable-${{ runner.os }}-
 
-      # Install Flutter only on cache miss
+      # Install Flutter (only on cache miss)
       - name: Install Flutter SDK
         if: steps.flutter-cache.outputs.cache-hit != 'true'
         run: |
-          curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${{ env.FLUTTER_VERSION }}-stable.tar.xz \
-            -o /tmp/flutter.tar.xz
-          mkdir -p ${{ env.FLUTTER_HOME }}
-          tar -xf /tmp/flutter.tar.xz -C ${{ env.FLUTTER_HOME }} --strip-components=1
+          git clone https://github.com/flutter/flutter.git \
+            --branch stable \
+            --depth 1 \
+            "$FLUTTER_HOME"
 
       - name: Add Flutter to PATH
-        run: echo "${{ env.FLUTTER_HOME }}/bin" >> $GITHUB_PATH
+        run: echo "$FLUTTER_HOME/bin" >> $GITHUB_PATH
 
       - name: flutter pub get
         run: flutter pub get

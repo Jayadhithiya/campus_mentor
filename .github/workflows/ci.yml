@@ -1,17 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # CI Workflow — Runs on every push and pull request to main
 #
-# Uses a direct shell-based Flutter install (no Node.js action = no Node 20
-# deprecation warnings). Flutter SDK is cached for fast subsequent runs.
-#
-# Steps:
-#   1. Checkout code
-#   2. Cache + install Flutter SDK directly via shell
-#   3. flutter pub get
-#   4. flutter analyze
-#   5. flutter test
-#   6. Build release APK → uploaded as artifact
-#   7. Build Flutter Web → uploaded as artifact
+# Flutter is installed via git clone (stable branch) — no Node.js action,
+# no Node 20 deprecation warnings. SDK is cached for speed.
 # ─────────────────────────────────────────────────────────────────────────────
 name: CI — Flutter Build & Test
 
@@ -22,8 +13,7 @@ on:
     branches: [main]
 
 env:
-  FLUTTER_VERSION: '3.32.0'
-  FLUTTER_HOME: ${{ github.workspace }}/.flutter
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
 
 jobs:
   build-and-test:
@@ -35,28 +25,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Cache Flutter SDK (keyed by version so cache invalidates on upgrade)
+      # 2. Cache Flutter SDK (keyed to stable channel + pubspec for invalidation)
       - name: Cache Flutter SDK
         id: flutter-cache
         uses: actions/cache@v4
         with:
           path: ${{ env.FLUTTER_HOME }}
-          key: flutter-${{ env.FLUTTER_VERSION }}-linux
+          key: flutter-stable-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            flutter-stable-${{ runner.os }}-
 
-      # 3. Install Flutter SDK directly (only when cache misses)
+      # 3. Install Flutter via git clone (only on cache miss)
       - name: Install Flutter SDK
         if: steps.flutter-cache.outputs.cache-hit != 'true'
         run: |
-          curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${{ env.FLUTTER_VERSION }}-stable.tar.xz \
-            -o /tmp/flutter.tar.xz
-          mkdir -p ${{ env.FLUTTER_HOME }}
-          tar -xf /tmp/flutter.tar.xz -C ${{ env.FLUTTER_HOME }} --strip-components=1
+          git clone https://github.com/flutter/flutter.git \
+            --branch stable \
+            --depth 1 \
+            "$FLUTTER_HOME"
 
-      # 4. Add Flutter to PATH
+      # 4. Add Flutter to PATH for all subsequent steps
       - name: Add Flutter to PATH
-        run: echo "${{ env.FLUTTER_HOME }}/bin" >> $GITHUB_PATH
+        run: echo "$FLUTTER_HOME/bin" >> $GITHUB_PATH
 
-      # 5. Verify Flutter installation
+      # 5. Confirm Flutter is available
       - name: Flutter version
         run: flutter --version
 
@@ -76,7 +68,7 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      # 10. Upload APK as downloadable artifact (available for 14 days)
+      # 10. Upload APK as downloadable artifact (14-day retention)
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -84,11 +76,11 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
 
-      # 11. Build Flutter Web
+      # 11. Build Flutter Web for GitHub Pages
       - name: Build Flutter Web
         run: flutter build web --release --base-href /campus_mentor/
 
-      # 12. Upload web build artifact (1 day — used only by deploy job)
+      # 12. Upload web build (used by deploy job)
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
         with:
