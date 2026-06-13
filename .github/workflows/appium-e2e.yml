@@ -106,7 +106,7 @@ jobs:
           disable-animations: true
           script: |
             cd e2e_tests/appium_mobile_testing
-            npx wdio wdio.conf.js
+            npm test
 
       # 14. Upload Appium Excel Report
       - name: Upload Appium Excel report
