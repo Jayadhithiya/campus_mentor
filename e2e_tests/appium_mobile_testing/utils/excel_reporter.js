@@ -34,8 +34,7 @@ class ExcelReporter {
     if (!this.sheet) {
       await this.init();
     }
-    const now = new Date();
-    const fileName = `android_test_report_${now.getTime()}.xlsx`;
+    const fileName = `appium_android_test_report_final.xlsx`;
     const filePath = path.resolve(__dirname, '..', 'reports', fileName);
     await this.workbook.xlsx.writeFile(filePath);
     console.log('✅ Android test report generated:', filePath);

@@ -91,10 +91,10 @@ jobs:
         working-directory: e2e_tests/appium_mobile_testing
         run: npm ci
 
-      # 12. Install Appium UiAutomator2 driver (allow it to proceed if already installed)
+      # 12. Ensure Appium UiAutomator2 driver is installed
       - name: Install Appium UIAutomator2 Driver
         working-directory: e2e_tests/appium_mobile_testing
-        run: npx appium driver install uiautomator2 || true
+        run: npx appium driver install uiautomator2 2>&1 | grep -v "already installed" || true
 
       # 13. Run Appium tests inside Android Emulator
       - name: Run Appium Tests
@@ -104,7 +104,7 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: npm --prefix e2e_tests/appium_mobile_testing test
+          script: bash -c "cd $GITHUB_WORKSPACE/e2e_tests/appium_mobile_testing && node_modules/.bin/wdio wdio.conf.js"
 
       # 14. Upload Appium Excel Report
       - name: Upload Appium Excel report
@@ -112,9 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: appium-android-excel-report
-          path: |
-            e2e_tests/appium_mobile_testing/reports/appium_android_test_report_final.xlsx
-            reports/appium_test_reports/appium_android_test_report_final.xlsx
+          path: e2e_tests/appium_mobile_testing/reports/appium_android_test_report_final.xlsx
           if-no-files-found: ignore
           retention-days: 14
 
