@@ -19,8 +19,6 @@
 name: E2E — Selenium Web Tests
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 env:
