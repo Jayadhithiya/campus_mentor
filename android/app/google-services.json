@@ -13,9 +13,9 @@
         }
       },
       "oauth_client": [],
-      "api_key": [
+      "REDACTED_SECRET": [
         {
-          "current_key": "AIzaSyCq3xUOQAgWWN_NwVcwYL2BCeauKfe9auk"
+          "current_key": "REDACTED_SECRET"
         }
       ],
       "services": {

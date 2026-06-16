@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import '../../core/constants/api_keys.dart';
+import '../../core/constants/REDACTED_SECRETs.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import '../../services/user_service.dart';
 import 'hr_result_screen.dart';
@@ -42,7 +42,7 @@ class _HRInterviewScreenState extends State<HRInterviewScreen> {
   int _timeLeft = 0;
   Timer? _timer;
 
-  static const String _groqKey = ApiKeys.groqKey;
+  static const String _groqKey = REDACTED_SECRETs.groqKey;
 
   @override
   void initState() {

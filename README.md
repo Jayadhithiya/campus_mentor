@@ -40,12 +40,12 @@ flutter pub get
 For security, the API keys file is excluded from GitHub. You must create it manually:
 
 1. Create a folder: `lib/core/constants/`
-2. Create a file named `api_keys.dart` inside that folder.
+2. Create a file named `REDACTED_SECRETs.dart` inside that folder.
 3. Paste the following code into it, replacing the placeholder with your **Groq API Key**:
 
 ```dart
-class ApiKeys {
-  static const String groqKey = 'YOUR_GROQ_API_KEY_HERE';
+class REDACTED_SECRETs {
+  static const String groqKey = 'YOUR_GROQ_REDACTED_SECRET_HERE';
 }
 ```
 

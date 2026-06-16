@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '../../core/constants/api_keys.dart';
+import '../../core/constants/REDACTED_SECRETs.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -22,7 +22,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   List<Map<String, dynamic>> _subjects = [];
   List<Map<String, dynamic>> _assignments = [];
 
-  static const String _apiKey = ApiKeys.groqKey;
+  static const String _REDACTED_SECRET = REDACTED_SECRETs.groqKey;
 
   @override
   void initState() {
@@ -143,7 +143,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_apiKey',
+          'Authorization': 'Bearer $_REDACTED_SECRET',
         },
         body: jsonEncode({
           'model': 'llama-3.3-70b-versatile',

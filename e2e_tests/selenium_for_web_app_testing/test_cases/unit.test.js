@@ -84,8 +84,8 @@ async function runUnitTests(driver, logStep) {
 
   // API Key checking configuration
   await logStep(testSuite, 'UN013: API keys placeholder detection logic', async () => {
-    const hasKey = (key) => key && key.length > 0 && key !== 'YOUR_GROQ_API_KEY_HERE';
-    if (hasKey('YOUR_GROQ_API_KEY_HERE')) throw new Error('Should reject default placeholder.');
+    const hasKey = (key) => key && key.length > 0 && key !== 'YOUR_GROQ_REDACTED_SECRET_HERE';
+    if (hasKey('YOUR_GROQ_REDACTED_SECRET_HERE')) throw new Error('Should reject default placeholder.');
   });
 
   // Aptitude questions constraints checks

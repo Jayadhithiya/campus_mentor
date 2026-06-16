@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '../../core/constants/api_keys.dart';
+import '../../core/constants/REDACTED_SECRETs.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -23,7 +23,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String _aiPlan = '';
   bool _isLoadingPlan = false;
 
-  static const String _groqKey = ApiKeys.groqKey;
+  static const String _groqKey = REDACTED_SECRETs.groqKey;
 
   @override
   void initState() {

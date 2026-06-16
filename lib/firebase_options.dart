@@ -23,7 +23,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC59J48QczQS2m_7g24VAte6UjvNOJ0GWs',
+    REDACTED_SECRET: 'REDACTED_SECRET',
     appId: '1:386966654332:web:88575fed5329f2adc428f9',
     messagingSenderId: '386966654332',
     projectId: 'campusmentor-2485c',
@@ -32,7 +32,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCq3xUOQAgWWN_NwVcwYL2BCeauKfe9auk',
+    REDACTED_SECRET: 'REDACTED_SECRET',
     appId: '1:386966654332:android:472e0497e4a3ea8bc428f9',
     messagingSenderId: '386966654332',
     projectId: 'campusmentor-2485c',
