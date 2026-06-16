@@ -61,3 +61,8 @@ ios/Flutter/flutter_export_environment.sh
 *.apk
 
 \n# Ignore build outputs\nbuild/
+
+.env
+*.env
+.env.local
+.env.production
