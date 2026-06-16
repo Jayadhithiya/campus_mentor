@@ -60,3 +60,4 @@ ios/Flutter/flutter_export_environment.sh
 # Ignored binary files
 *.apk
 
+\n# Ignore build outputs\nbuild/
