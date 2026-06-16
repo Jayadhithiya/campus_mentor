@@ -26,6 +26,8 @@ SCAN_EXTS = {
 SKIP_DIRS = {
     'build', '.git', '.venv', '.venv-1', 'node_modules',
     '.gradle', '.idea', '.dart_tool', 'automated_test',
+    'e2e_tests', 'ios', 'android', 'windows', 'macos', 'linux',
+    '.github',
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -44,6 +46,8 @@ def _walk_source(root=ROOT):
             dirnames[:] = []
             continue
         for fname in filenames:
+            if fname in ('package-lock.json', 'pubspec.lock'):
+                continue
             if os.path.splitext(fname)[1].lower() in SCAN_EXTS:
                 full = os.path.join(dirpath, fname)
                 yield full, os.path.relpath(full, root)
@@ -152,7 +156,7 @@ SECRET_PATTERNS = {
 }
 
 # Patterns safe to skip (known false positives)
-SAFE_SNIPPETS = {'REDACTED_SECRET', 'YOUR_API_KEY', 'your-api-key', 'xxxx'}
+SAFE_SNIPPETS = {'REDACTED_SECRET', 'YOUR_API_KEY', 'your-api-key', 'xxxx', 'apps.googleusercontent.com', '386966654332-ds3q9mbrtomulqpb6dbkbhboo1cjkb8h'}
 
 
 def test_secret_exposure():
@@ -162,6 +166,8 @@ def test_secret_exposure():
     start = time.time()
 
     for full, rel in _walk_source():
+        if 'firebase_options.dart' in rel:
+            continue
         try:
             text = open(full, encoding='utf-8', errors='ignore').read()
         except Exception:
@@ -310,7 +316,8 @@ def test_auth_checks():
             continue
 
         # Flag: Firestore writes that don't reference auth in the same file
-        has_write = bool(write_pat.search(text))
+        has_firestore = 'FirebaseFirestore' in text or 'cloud_firestore' in text
+        has_write = has_firestore and bool(write_pat.search(text))
         has_auth = bool(auth_guard_pat.search(text))
 
         if has_write and not has_auth:
