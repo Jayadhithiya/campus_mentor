@@ -1,6 +1,6 @@
 # 🛡️ DAST Security Test Report
 
-**Generated:** 2026-06-16 13:34 UTC  
+**Generated:** 2026-06-16 13:42 UTC  
 **Project:** campus_mentor (Flutter/Firebase)
 
 ---
@@ -24,20 +24,20 @@
 
 | Method | Endpoint | Access Type | Expected Roles |
 |--------|----------|-------------|----------------|
-| `AUTH` | `firebase-auth::signOut` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::currentUser` | Firebase/Auth | anonymous / authenticated |
 | `FIRESTORE` | `firestore://users` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://aptitude_history` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://technical_history` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://hr_history` | Firebase/Firestore | authenticated |
-| `HTTP` | `https://api.groq.com/openai/v1/chat/completions` | External HTTP | authenticated |
+| `FIRESTORE` | `firestore://assignments` | Firebase/Firestore | authenticated |
+| `FIRESTORE` | `firestore://attendance` | Firebase/Firestore | authenticated |
+| `AUTH` | `firebase-auth::signOut` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::signInWithEmailAndPassword` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::signInWithGoogle` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::createUserWithEmailAndPassword` | Firebase/Auth | anonymous / authenticated |
-| `FIRESTORE` | `firestore://assignments` | Firebase/Firestore | authenticated |
-| `FIRESTORE` | `firestore://classes` | Firebase/Firestore | authenticated |
-| `FIRESTORE` | `firestore://attendance` | Firebase/Firestore | authenticated |
+| `HTTP` | `https://api.groq.com/openai/v1/chat/completions` | External HTTP | authenticated |
 | `HTTP` | `https://emkc.org/api/v2/piston/execute` | External HTTP | authenticated |
+| `FIRESTORE` | `firestore://classes` | Firebase/Firestore | authenticated |
 
 ---
 
@@ -59,8 +59,8 @@
 
 | Finding ID | Auto Fixed | Status | Files Changed | Details |
 |------------|------------|--------|---------------|---------|
-| TC-SEC-001 | ✅ Yes | PARTIAL | `.env.example, .gitignore, automated_test/SECRET_ROTATION_REQUIRED.md` | Created .env.example template; Added to .gitignore: .env, *.env, .env.local, .en |
-| TC-SEC-002 | ✅ Yes | APPLIED | `firebase.json` | Added 7 security header(s): X-Frame-Options, X-Content-Type-Options, X-XSS-Prote |
+| TC-SEC-001 | ✅ Yes | PARTIAL | `automated_test/SECRET_ROTATION_REQUIRED.md` | Created SECRET_ROTATION_REQUIRED.md with rotation instructions |
+| TC-SEC-002 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-003 | ❌ No | Manual Fix Required | `—` | Ensure every Firestore write checks FirebaseAuth.instance.currentUser != null be |
 | TC-SEC-004 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-005 | ❌ No | Manual Fix Required | `—` | Install Flutter/Dart SDK and ensure it is in PATH. |
