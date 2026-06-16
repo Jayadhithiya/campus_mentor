@@ -65,7 +65,7 @@ jobs:
 
       # Build for the GitHub Pages sub-path /campus_mentor/
       - name: Build Flutter Web for GitHub Pages
-        run: flutter build web --release --base-href /campus_mentor/ --dart-define=GROQ_KEY=${{ secrets.GROQ_API_KEY }}
+        run: flutter build web --release --base-href /campus_mentor/
 
       # Configure Pages uploader
       - name: Setup Pages
