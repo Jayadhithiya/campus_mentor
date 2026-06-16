@@ -1,3 +1,6 @@
 class ApiKeys {
-  static const String groqKey = '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';
+  static const String groqKey = String.fromEnvironment(
+    'GROQ_KEY',
+    defaultValue: 'YOUR_GROQ_REDACTED_SECRET_HERE',
+  );
 }

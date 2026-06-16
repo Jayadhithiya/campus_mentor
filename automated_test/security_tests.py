@@ -166,7 +166,7 @@ def test_secret_exposure():
     start = time.time()
 
     for full, rel in _walk_source():
-        if 'firebase_options.dart' in rel or 'api_keys.dart' in rel:
+        if 'firebase_options.dart' in rel:
             continue
         try:
             text = open(full, encoding='utf-8', errors='ignore').read()
