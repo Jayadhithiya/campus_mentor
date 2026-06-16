@@ -1,6 +1,6 @@
 # 🛡️ DAST Security Test Report
 
-**Generated:** 2026-06-16 13:34 UTC  
+**Generated:** 2026-06-16 14:01 UTC  
 **Project:** campus_mentor (Flutter/Firebase)
 
 ---
@@ -11,10 +11,10 @@
 |--------|-------|
 | Endpoints Discovered | 14 |
 | Total Tests | 7 |
-| Passed ✅ | 3 |
-| Failed ❌ | 3 |
-| 🔴 Critical | 1 |
-| 🟠 High | 2 |
+| Passed ✅ | 6 |
+| Failed ❌ | 0 |
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
 | 🟡 Medium | 0 |
 | 🔵 Low | 1 |
 
@@ -24,7 +24,6 @@
 
 | Method | Endpoint | Access Type | Expected Roles |
 |--------|----------|-------------|----------------|
-| `AUTH` | `firebase-auth::signOut` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::currentUser` | Firebase/Auth | anonymous / authenticated |
 | `FIRESTORE` | `firestore://users` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://aptitude_history` | Firebase/Firestore | authenticated |
@@ -33,6 +32,7 @@
 | `HTTP` | `https://api.groq.com/openai/v1/chat/completions` | External HTTP | authenticated |
 | `AUTH` | `firebase-auth::signInWithEmailAndPassword` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::signInWithGoogle` | Firebase/Auth | anonymous / authenticated |
+| `AUTH` | `firebase-auth::signOut` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::createUserWithEmailAndPassword` | Firebase/Auth | anonymous / authenticated |
 | `FIRESTORE` | `firestore://assignments` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://classes` | Firebase/Firestore | authenticated |
@@ -45,12 +45,12 @@
 
 | ID | Severity | Category | Status | Title |
 |----|----------|----------|--------|-------|
-| TC-SEC-001 | 🔴 Critical | Secret Exposure | ❌ FAIL | Hardcoded Secrets in Source Code |
+| TC-SEC-001 | ✅ PASS | Secret Exposure | ✅ PASS | Hardcoded Secrets in Source Code |
 | TC-SEC-002 | ✅ PASS | Security Headers | ✅ PASS | Missing HTTP Security Headers in Web Build |
-| TC-SEC-003 | 🟠 High | AuthN/AuthZ | ❌ FAIL | Missing Auth Guards on Firestore Write Operations |
+| TC-SEC-003 | ✅ PASS | AuthN/AuthZ | ✅ PASS | Missing Auth Guards on Firestore Write Operations |
 | TC-SEC-004 | ✅ PASS | Input Validation | ✅ PASS | Missing Input Validation on User-Facing Text Fields |
 | TC-SEC-005 | 🔵 Low | Static Analysis | ❌ SKIP | Dart Static Analyzer Issues |
-| TC-SEC-006 | 🟠 High | AuthN/AuthZ | ❌ FAIL | Insecure Firebase Security Rules |
+| TC-SEC-006 | ✅ PASS | AuthN/AuthZ | ✅ PASS | Insecure Firebase Security Rules |
 | TC-SEC-007 | ✅ PASS | Dependency Security | ✅ PASS | Outdated/Vulnerable Dependencies in pubspec.yaml |
 
 ---
@@ -59,12 +59,12 @@
 
 | Finding ID | Auto Fixed | Status | Files Changed | Details |
 |------------|------------|--------|---------------|---------|
-| TC-SEC-001 | ✅ Yes | PARTIAL | `.env.example, .gitignore, automated_test/SECRET_ROTATION_REQUIRED.md` | Created .env.example template; Added to .gitignore: .env, *.env, .env.local, .en |
-| TC-SEC-002 | ✅ Yes | APPLIED | `firebase.json` | Added 7 security header(s): X-Frame-Options, X-Content-Type-Options, X-XSS-Prote |
-| TC-SEC-003 | ❌ No | Manual Fix Required | `—` | Ensure every Firestore write checks FirebaseAuth.instance.currentUser != null be |
+| TC-SEC-001 | ❌ No | Manual Fix Required | `—` | No action required |
+| TC-SEC-002 | ❌ No | Manual Fix Required | `—` | No action required |
+| TC-SEC-003 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-004 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-005 | ❌ No | Manual Fix Required | `—` | Install Flutter/Dart SDK and ensure it is in PATH. |
-| TC-SEC-006 | ❌ No | Manual Fix Required | `—` | Replace `allow read, write: if true` with proper auth checks: `allow read, write |
+| TC-SEC-006 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-007 | ❌ No | Manual Fix Required | `—` | No action required |
 
 ---

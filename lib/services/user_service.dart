@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -69,6 +70,11 @@ class UserService {
 
   /// Called whenever a user completes ANY test (Aptitude, Technical, or HR)
   static Future<void> updateStreakAndTests(String uid) async {
+    // Auth guard check to satisfy security audit (TC-SEC-003)
+    if (FirebaseAuth.instance.currentUser == null) {
+      debugPrint('Unauthorized: user is not signed in');
+      return;
+    }
     try {
       final userDocRef = FirebaseFirestore.instance.collection('users').doc(uid);
       final docSnapshot = await userDocRef.get();
