@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import '../../core/constants/REDACTED_SECRETs.dart';
+import '../../core/constants/api_keys.dart';
 import '../../services/user_service.dart';
 import 'aptitude_result_screen.dart';
 
@@ -38,7 +38,7 @@ class _AptitudeTestScreenState extends State<AptitudeTestScreen> {
   int _timeLeft = 0;
   Timer? _timer;
 
-  static const String _REDACTED_SECRET = REDACTED_SECRETs.groqKey;
+  static const String _apiKey = ApiKeys.groqKey;
   @override
   void initState() {
     super.initState();
@@ -127,7 +127,7 @@ Output ONLY this JSON, no other text:
               Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer $_REDACTED_SECRET',
+                'Authorization': 'Bearer $_apiKey',
               },
               body: jsonEncode({
                 'model': 'llama-3.3-70b-versatile',

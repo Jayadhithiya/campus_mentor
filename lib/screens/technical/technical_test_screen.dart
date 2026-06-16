@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import '../../core/constants/REDACTED_SECRETs.dart';
+import '../../core/constants/api_keys.dart';
 import '../../services/user_service.dart';
 import 'technical_result_screen.dart';
 
@@ -47,7 +47,7 @@ class _TechnicalTestScreenState extends State<TechnicalTestScreen> {
   Timer? _timer;
   final TextEditingController _codeController = TextEditingController();
 
-  static const String _groqKey = REDACTED_SECRETs.groqKey;
+  static const String _groqKey = ApiKeys.groqKey;
 
   @override
   void initState() {
