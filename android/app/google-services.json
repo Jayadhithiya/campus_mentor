@@ -13,9 +13,9 @@
         }
       },
       "oauth_client": [],
-      "REDACTED_SECRET": [
+      "api_key": [
         {
-          "current_key": "REDACTED_SECRET"
+          "current_key": "AIzaSyDummyKeyForCompilationOnly12345"
         }
       ],
       "services": {
