@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-16 14:01 UTC",
+  "generated_at": "2026-06-18 15:06 UTC",
   "summary": {
     "endpoints_discovered": 14,
     "total_tests": 7,
@@ -16,98 +16,98 @@
       "endpoint": "firebase-auth::currentUser",
       "access_type": "Firebase/Auth",
       "expected_roles": "anonymous / authenticated",
-      "source_file": "lib\\main.dart"
+      "source_file": "lib/main.dart"
     },
     {
       "method": "FIRESTORE",
       "endpoint": "firestore://users",
       "access_type": "Firebase/Firestore",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\analytics\\analytics_screen.dart"
+      "source_file": "lib/screens/home/home_screen.dart"
     },
     {
       "method": "FIRESTORE",
       "endpoint": "firestore://aptitude_history",
       "access_type": "Firebase/Firestore",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\analytics\\analytics_screen.dart"
+      "source_file": "lib/screens/home/home_screen.dart"
     },
     {
       "method": "FIRESTORE",
       "endpoint": "firestore://technical_history",
       "access_type": "Firebase/Firestore",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\analytics\\analytics_screen.dart"
+      "source_file": "lib/screens/home/home_screen.dart"
     },
     {
       "method": "FIRESTORE",
       "endpoint": "firestore://hr_history",
       "access_type": "Firebase/Firestore",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\analytics\\analytics_screen.dart"
-    },
-    {
-      "method": "HTTP",
-      "endpoint": "https://api.groq.com/openai/v1/chat/completions",
-      "access_type": "External HTTP",
-      "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\analytics\\analytics_screen.dart"
-    },
-    {
-      "method": "AUTH",
-      "endpoint": "firebase-auth::signInWithEmailAndPassword",
-      "access_type": "Firebase/Auth",
-      "expected_roles": "anonymous / authenticated",
-      "source_file": "lib\\screens\\auth\\login_screen.dart"
-    },
-    {
-      "method": "AUTH",
-      "endpoint": "firebase-auth::signInWithGoogle",
-      "access_type": "Firebase/Auth",
-      "expected_roles": "anonymous / authenticated",
-      "source_file": "lib\\screens\\auth\\login_screen.dart"
-    },
-    {
-      "method": "AUTH",
-      "endpoint": "firebase-auth::signOut",
-      "access_type": "Firebase/Auth",
-      "expected_roles": "anonymous / authenticated",
-      "source_file": "lib\\screens\\auth\\login_screen.dart"
-    },
-    {
-      "method": "AUTH",
-      "endpoint": "firebase-auth::createUserWithEmailAndPassword",
-      "access_type": "Firebase/Auth",
-      "expected_roles": "anonymous / authenticated",
-      "source_file": "lib\\screens\\auth\\register_screen.dart"
+      "source_file": "lib/screens/home/home_screen.dart"
     },
     {
       "method": "FIRESTORE",
       "endpoint": "firestore://assignments",
       "access_type": "Firebase/Firestore",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\campus\\add_assignment_screen.dart"
-    },
-    {
-      "method": "FIRESTORE",
-      "endpoint": "firestore://classes",
-      "access_type": "Firebase/Firestore",
-      "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\campus\\add_class_screen.dart"
+      "source_file": "lib/screens/home/home_screen.dart"
     },
     {
       "method": "FIRESTORE",
       "endpoint": "firestore://attendance",
       "access_type": "Firebase/Firestore",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\campus\\attendance_screen.dart"
+      "source_file": "lib/screens/home/home_screen.dart"
+    },
+    {
+      "method": "AUTH",
+      "endpoint": "firebase-auth::signOut",
+      "access_type": "Firebase/Auth",
+      "expected_roles": "anonymous / authenticated",
+      "source_file": "lib/screens/home/profile_screen.dart"
+    },
+    {
+      "method": "AUTH",
+      "endpoint": "firebase-auth::signInWithEmailAndPassword",
+      "access_type": "Firebase/Auth",
+      "expected_roles": "anonymous / authenticated",
+      "source_file": "lib/screens/auth/login_screen.dart"
+    },
+    {
+      "method": "AUTH",
+      "endpoint": "firebase-auth::signInWithGoogle",
+      "access_type": "Firebase/Auth",
+      "expected_roles": "anonymous / authenticated",
+      "source_file": "lib/screens/auth/login_screen.dart"
+    },
+    {
+      "method": "AUTH",
+      "endpoint": "firebase-auth::createUserWithEmailAndPassword",
+      "access_type": "Firebase/Auth",
+      "expected_roles": "anonymous / authenticated",
+      "source_file": "lib/screens/auth/register_screen.dart"
+    },
+    {
+      "method": "HTTP",
+      "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+      "access_type": "External HTTP",
+      "expected_roles": "authenticated",
+      "source_file": "lib/screens/analytics/analytics_screen.dart"
     },
     {
       "method": "HTTP",
       "endpoint": "https://emkc.org/api/v2/piston/execute",
       "access_type": "External HTTP",
       "expected_roles": "authenticated",
-      "source_file": "lib\\screens\\technical\\technical_test_screen.dart"
+      "source_file": "lib/screens/technical/technical_test_screen.dart"
+    },
+    {
+      "method": "FIRESTORE",
+      "endpoint": "firestore://classes",
+      "access_type": "Firebase/Firestore",
+      "expected_roles": "authenticated",
+      "source_file": "lib/screens/campus/add_class_screen.dart"
     }
   ],
   "findings": [
@@ -147,7 +147,7 @@
           "Strict-Transport-Security"
         ],
         "files_checked": [
-          "web\\index.html",
+          "web/index.html",
           "firebase.json"
         ]
       },

@@ -1,6 +1,6 @@
 # 🛡️ DAST Security Test Report
 
-**Generated:** 2026-06-16 14:01 UTC  
+**Generated:** 2026-06-18 15:06 UTC  
 **Project:** campus_mentor (Flutter/Firebase)
 
 ---
@@ -29,15 +29,15 @@
 | `FIRESTORE` | `firestore://aptitude_history` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://technical_history` | Firebase/Firestore | authenticated |
 | `FIRESTORE` | `firestore://hr_history` | Firebase/Firestore | authenticated |
-| `HTTP` | `https://api.groq.com/openai/v1/chat/completions` | External HTTP | authenticated |
+| `FIRESTORE` | `firestore://assignments` | Firebase/Firestore | authenticated |
+| `FIRESTORE` | `firestore://attendance` | Firebase/Firestore | authenticated |
+| `AUTH` | `firebase-auth::signOut` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::signInWithEmailAndPassword` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::signInWithGoogle` | Firebase/Auth | anonymous / authenticated |
-| `AUTH` | `firebase-auth::signOut` | Firebase/Auth | anonymous / authenticated |
 | `AUTH` | `firebase-auth::createUserWithEmailAndPassword` | Firebase/Auth | anonymous / authenticated |
-| `FIRESTORE` | `firestore://assignments` | Firebase/Firestore | authenticated |
-| `FIRESTORE` | `firestore://classes` | Firebase/Firestore | authenticated |
-| `FIRESTORE` | `firestore://attendance` | Firebase/Firestore | authenticated |
+| `HTTP` | `https://api.groq.com/openai/v1/chat/completions` | External HTTP | authenticated |
 | `HTTP` | `https://emkc.org/api/v2/piston/execute` | External HTTP | authenticated |
+| `FIRESTORE` | `firestore://classes` | Firebase/Firestore | authenticated |
 
 ---
 
