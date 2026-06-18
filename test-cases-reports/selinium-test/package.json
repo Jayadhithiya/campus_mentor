@@ -1,0 +1,13 @@
+{
+  "name": "strivecampus-selenium-web-tests",
+  "version": "1.0.0",
+  "description": "Selenium E2E Web testing suite for StriveCampus",
+  "main": "run_web_tests.js",
+  "scripts": {
+    "test": "node run_web_tests.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "selenium-webdriver": "^4.16.0"
+  }
+}

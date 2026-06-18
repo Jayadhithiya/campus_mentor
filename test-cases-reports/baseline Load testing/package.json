@@ -1,0 +1,20 @@
+{
+  "name": "campus-mentor-baseline-load-testing",
+  "version": "1.0.0",
+  "description": "Baseline & Load Testing for Campus Mentor Web Application",
+  "main": "run_load_tests.js",
+  "scripts": {
+    "install:k6": "winget install k6 --silent || echo 'Install k6 from https://k6.io/docs/getting-started/installation/'",
+    "test": "node run_load_tests.js",
+    "report": "node generate_excel_report.js",
+    "full": "node run_load_tests.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.2.0"
+  },
+  "author": "Campus Mentor QA Team",
+  "license": "MIT"
+}
