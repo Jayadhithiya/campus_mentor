@@ -54,7 +54,7 @@ function ensureServer() {
     return null;
   }
 
-  const buildPath = path.join(ROOT, '..', '..', '..', 'build', 'web');
+  const buildPath = path.join(ROOT, '..', '..', 'build', 'web');
   if (!fs.existsSync(buildPath)) {
     console.log('⚠️  build/web not found. Proceeding without local server.');
     return null;
@@ -605,6 +605,22 @@ async function generateExcelReport(data) {
   try {
     const reportPath = await generateExcelReport(data);
     console.log(`\n✅ Report saved: ${reportPath}\n`);
+
+    // Write load_test_summary.json
+    const passRate = Math.round((1 - (data.metrics.error_rate?.values?.rate ?? data.metrics.http_req_failed?.values?.rate ?? 0)) * 100);
+    const failed = Math.round(data.metrics.http_reqs.values.count * ((data.metrics.error_rate?.values?.rate ?? data.metrics.http_req_failed?.values?.rate ?? 0)));
+    const passed = data.metrics.http_reqs.values.count - failed;
+    const allPass = data.metrics.http_req_duration.values['p(95)'] < 2000 && passRate >= 95;
+    
+    const summaryData = {
+      total: data.metrics.http_reqs.values.count,
+      passed: passed,
+      failed: failed,
+      passRate: passRate,
+      duration: data.metrics.http_req_duration.values.avg.toFixed(2),
+      status: allPass ? 'PASS' : 'FAIL'
+    };
+    fs.writeFileSync(path.join(ROOT, 'load_test_summary.json'), JSON.stringify(summaryData, null, 2));
   } catch (err) {
     console.error('❌ Failed to generate Excel report:', err.message);
     process.exit(1);
