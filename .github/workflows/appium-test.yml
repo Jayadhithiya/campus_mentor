@@ -69,6 +69,19 @@ jobs:
           mkdir -p test-cases-reports/appium-test/apk
           cp build/app/outputs/flutter-apk/app-debug.apk test-cases-reports/appium-test/apk/app-debug.apk
 
+      # 8.1 Build release APK
+      - name: Build release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      # 8.2 Upload APK artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+
+
       # 9. Enable KVM (Kernel-based Virtual Machine) for Emulator acceleration
       - name: Enable KVM group perms
         run: sudo chmod 777 /dev/kvm
