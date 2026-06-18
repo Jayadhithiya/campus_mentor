@@ -4,13 +4,7 @@ name: "DAST Security — Scan, Remediate & Gate"
 # Triggers
 # ─────────────────────────────────────────────────────────────────────────────
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "0 2 * * *"   # Nightly at 02:00 UTC
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Global env vars
