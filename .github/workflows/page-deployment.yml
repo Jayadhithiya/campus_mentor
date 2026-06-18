@@ -1,13 +1,11 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # ─────────────────────────────────────────────────────────────────────────────
-# Deploy Workflow — GitHub Pages
+# Page deployment workflow
 #
-# Flutter installed via git clone (stable). No Node.js actions used for
-# Flutter setup → zero Node 20 deprecation warnings.
-#
-# ⚠️  REQUIRED: Settings → Pages → Source → "GitHub Actions"
+# Flutter is installed via git clone (stable branch) — no Node.js action,
+# no Node 20 deprecation warnings. SDK is cached for speed.
 # ─────────────────────────────────────────────────────────────────────────────
-name: Deploy — GitHub Pages
+name: Page deployment
 
 on:
   push:
@@ -15,8 +13,9 @@ on:
       - main
   workflow_dispatch:
 
+# Set permissions for GITHUB_TOKEN
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,12 +23,10 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-
 env:
   FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
 
 jobs:
-  # ── Job 1: Build Flutter Web ──────────────────────────────────────────────
   build:
     name: Build Flutter Web
     runs-on: ubuntu-latest
@@ -37,6 +34,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Use collaborator token if available, otherwise fallback to GITHUB_TOKEN
+          token: ${{ secrets.COLLABORATOR_TOKEN || secrets.GITHUB_TOKEN }}
 
       # Cache Flutter SDK
       - name: Cache Flutter SDK
@@ -77,7 +77,6 @@ jobs:
         with:
           path: build/web/
 
-  # ── Job 2: Deploy to GitHub Pages ─────────────────────────────────────────
   deploy:
     name: Deploy to GitHub Pages
     needs: build
@@ -88,6 +87,18 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # Option A: Standard deployment to repository pages (uses GITHUB_TOKEN)
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # Option B: Deployment using collaborator token (commented out by default)
+      # Uncomment the step below and set up COLLABORATOR_TOKEN secret if you want to deploy using a collaborator PAT
+      # - name: Deploy to Branch (Collaborator PAT fallback)
+      #   if: always() && secrets.COLLABORATOR_TOKEN != ''
+      #   uses: peaceiris/actions-gh-pages@v4
+      #   with:
+      #     github_token: ${{ secrets.COLLABORATOR_TOKEN }}
+      #     publish_dir: ./build/web
+      #     user_name: 'github-actions[bot]'
+      #     user_email: 'github-actions[bot]@users.noreply.github.com'
