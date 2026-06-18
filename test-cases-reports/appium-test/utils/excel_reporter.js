@@ -463,6 +463,22 @@ class ExcelReporter {
     await wb.xlsx.writeFile(outPath);
     console.log('✅ Android test report generated:', outPath);
 
+    // Generate JSON summary for GitHub Actions step summary
+    try {
+      const summaryPath = path.join(__dirname, '..', 'appium_summary.json');
+      fs.writeFileSync(summaryPath, JSON.stringify({
+        total: total,
+        passed: passed,
+        failed: failed,
+        passRate: passRate,
+        duration: durationStr,
+        status: parseFloat(passRate) >= 98 ? 'DEPLOYABLE ✅' : 'NOT DEPLOYABLE ❌'
+      }, null, 2));
+      console.log(`📊 JSON Summary Generated Successfully: ${summaryPath}`);
+    } catch (jsonErr) {
+      console.error('❌ Failed to generate JSON summary: ', jsonErr.message);
+    }
+
     // Clean up temporary files
     if (fs.existsSync(tempDir)) {
       try {

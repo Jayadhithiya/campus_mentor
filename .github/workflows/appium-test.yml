@@ -1,27 +1,32 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # ─────────────────────────────────────────────────────────────────────────────
-# Appium E2E Tests — Runs separately on push/PR to main, or manual run
-#
-# Launches an Android Emulator (KVM-accelerated) and executes the Appium 
-# mobile test suite against the built debug APK.
+# Standalone Appium Test Workflow
 # ─────────────────────────────────────────────────────────────────────────────
-name: E2E — Appium Mobile Tests
+name: Appium Test
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 env:
   FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
 
 jobs:
-  appium-mobile-e2e:
-    name: Appium Mobile E2E Tests
+  appium-test:
+    name: Run Appium Tests
     runs-on: ubuntu-latest
 
     steps:
       # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.COLLABORATOR_TOKEN || secrets.GITHUB_TOKEN }}
 
       # 2. Cache Flutter SDK
       - name: Cache Flutter SDK
@@ -61,11 +66,11 @@ jobs:
       - name: Build Android Debug APK
         run: flutter build apk --debug --no-tree-shake-icons
 
-      # 8. Copy built APK to e2e_tests/appium_mobile_testing/apk/
+      # 8. Copy built APK to test-cases-reports/appium-test/apk/
       - name: Prepare APK directory for Appium
         run: |
-          mkdir -p e2e_tests/appium_mobile_testing/apk
-          cp build/app/outputs/flutter-apk/app-debug.apk e2e_tests/appium_mobile_testing/apk/app-debug.apk
+          mkdir -p test-cases-reports/appium-test/apk
+          cp build/app/outputs/flutter-apk/app-debug.apk test-cases-reports/appium-test/apk/app-debug.apk
 
       # 9. Enable KVM (Kernel-based Virtual Machine) for Emulator acceleration
       - name: Enable KVM group perms
@@ -80,21 +85,21 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: e2e_tests/appium_mobile_testing/package-lock.json
+          cache-dependency-path: test-cases-reports/appium-test/package-lock.json
 
       # 11. Install npm packages for Appium test suite
       - name: Install Appium test dependencies
-        working-directory: e2e_tests/appium_mobile_testing
+        working-directory: test-cases-reports/appium-test
         run: npm ci
 
       # 12. Ensure Appium UiAutomator2 driver is installed
       - name: Install Appium UIAutomator2 Driver
-        working-directory: e2e_tests/appium_mobile_testing
+        working-directory: test-cases-reports/appium-test
         run: npx appium driver install uiautomator2 2>&1 | grep -v "already installed" || true
 
       # 13. Start Appium server as a persistent background process
       - name: Start Appium server
-        working-directory: e2e_tests/appium_mobile_testing
+        working-directory: test-cases-reports/appium-test
         run: |
           mkdir -p reports
           nohup node_modules/.bin/appium > reports/appium.log 2>&1 &
@@ -117,7 +122,7 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: bash -c "cd $GITHUB_WORKSPACE/e2e_tests/appium_mobile_testing && node_modules/.bin/wdio wdio.conf.js"
+          script: bash -c "cd $GITHUB_WORKSPACE/test-cases-reports/appium-test && node_modules/.bin/wdio wdio.conf.js"
 
       # 15. Stop Appium server
       - name: Stop Appium server
@@ -130,7 +135,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: appium-android-excel-report
-          path: e2e_tests/appium_mobile_testing/reports/appium_android_test_report_final.xlsx
+          path: test-cases-reports/appium-test/appium_android_report.xlsx
           if-no-files-found: ignore
           retention-days: 14
 
@@ -140,6 +145,39 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: appium-failure-screenshots
-          path: e2e_tests/appium_mobile_testing/reports/screenshots/
+          path: test-cases-reports/appium-test/reports/screenshots/
           if-no-files-found: ignore
           retention-days: 7
+
+      # 18. Add chart and summary to GITHUB_STEP_SUMMARY
+      - name: Generate Job Summary Chart
+        if: always()
+        run: |
+          SUMMARY_JSON="test-cases-reports/appium-test/appium_summary.json"
+          if [ -f "$SUMMARY_JSON" ]; then
+            TOTAL=$(jq -r '.total' "$SUMMARY_JSON")
+            PASSED=$(jq -r '.passed' "$SUMMARY_JSON")
+            FAILED=$(jq -r '.failed' "$SUMMARY_JSON")
+            PASSRATE=$(jq -r '.passRate' "$SUMMARY_JSON")
+            DURATION=$(jq -r '.duration' "$SUMMARY_JSON")
+            STATUS=$(jq -r '.status' "$SUMMARY_JSON")
+            
+            echo "## 📊 Appium Mobile Test Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+            echo "pie title Pass vs Fail Rate ($PASSRATE%)" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Passed ✅\" : $PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Failed ❌\" : $FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total Test Steps** | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Steps Passed ✅** | $PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Steps Failed ❌** | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Success Rate 📈** | $PASSRATE% |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total Duration ⏱️** | $DURATION |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Deployability Status 🚀** | $STATUS |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Appium test summary JSON not found. Skip summary generation." >> $GITHUB_STEP_SUMMARY
+          fi
