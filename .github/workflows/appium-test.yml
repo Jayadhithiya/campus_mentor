@@ -90,7 +90,7 @@ jobs:
       # 11. Install npm packages for Appium test suite
       - name: Install Appium test dependencies
         working-directory: test-cases-reports/appium-test
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       # 12. Ensure Appium UiAutomator2 driver is installed
       - name: Install Appium UIAutomator2 Driver
