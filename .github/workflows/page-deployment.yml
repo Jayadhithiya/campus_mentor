@@ -67,6 +67,67 @@ jobs:
       - name: Build Flutter Web for GitHub Pages
         run: flutter build web --release --base-href /campus_mentor/ --dart-define=GROQ_KEY=${{ secrets.GROQ_API_KEY }}
 
+      # Set up Node.js for running Selenium tests
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: test-cases-reports/selinium-test/package-lock.json
+
+      # Install test dependencies
+      - name: Install Selenium test dependencies
+        working-directory: test-cases-reports/selinium-test
+        run: npm ci
+
+      # Run Selenium E2E Web tests
+      - name: Run Selenium E2E Web Tests
+        working-directory: test-cases-reports/selinium-test
+        run: node run_web_tests.js
+
+      # Upload Excel report as artifact
+      - name: Upload Selenium Excel report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-report
+          path: test-cases-reports/selinium-test/selenium_web_report.xlsx
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Add chart and summary to GITHUB_STEP_SUMMARY
+      - name: Generate Job Summary Chart
+        if: always()
+        run: |
+          SUMMARY_JSON="test-cases-reports/selinium-test/selenium_summary.json"
+          if [ -f "$SUMMARY_JSON" ]; then
+            TOTAL=$(jq -r '.total' "$SUMMARY_JSON")
+            PASSED=$(jq -r '.passed' "$SUMMARY_JSON")
+            FAILED=$(jq -r '.failed' "$SUMMARY_JSON")
+            PASSRATE=$(jq -r '.passRate' "$SUMMARY_JSON")
+            DURATION=$(jq -r '.duration' "$SUMMARY_JSON")
+            STATUS=$(jq -r '.status' "$SUMMARY_JSON")
+            
+            echo "## 📊 Selenium Web Test Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+            echo "pie title Pass vs Fail Rate ($PASSRATE%)" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Passed ✅\" : $PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Failed ❌\" : $FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total Test Steps** | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Steps Passed ✅** | $PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Steps Failed ❌** | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Success Rate 📈** | $PASSRATE% |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total Duration ⏱️** | ${DURATION}s |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Deployability Status 🚀** | $STATUS |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Selenium test summary JSON not found. Skip summary generation." >> $GITHUB_STEP_SUMMARY
+          fi
+
       # Configure Pages uploader
       - name: Setup Pages
         uses: actions/configure-pages@v5

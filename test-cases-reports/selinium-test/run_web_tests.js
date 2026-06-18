@@ -223,6 +223,22 @@ async function main() {
       console.error('❌ Failed to compile Excel report: ', excelErr.message);
     }
 
+    // Generate JSON summary for GitHub Actions step summary
+    try {
+      const summaryPath = path.join(__dirname, 'selenium_summary.json');
+      fs.writeFileSync(summaryPath, JSON.stringify({
+        total: totalTests,
+        passed: passed,
+        failed: failed,
+        passRate: passRate,
+        duration: (totalDuration / 1000).toFixed(1),
+        status: deployable ? 'DEPLOYABLE ✅' : 'NOT DEPLOYABLE ❌'
+      }, null, 2));
+      console.log(`📊 JSON Summary Generated Successfully: ${summaryPath}`);
+    } catch (jsonErr) {
+      console.error('❌ Failed to generate JSON summary: ', jsonErr.message);
+    }
+
     // Exit successfully if deployable
     process.exit(deployable ? 0 : 1);
   }
