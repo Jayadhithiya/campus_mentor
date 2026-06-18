@@ -1,11 +1,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # ─────────────────────────────────────────────────────────────────────────────
-# Page deployment workflow
-#
-# Flutter is installed via git clone (stable branch) — no Node.js action,
-# no Node 20 deprecation warnings. SDK is cached for speed.
+# Standalone Selinium Test Workflow
 # ─────────────────────────────────────────────────────────────────────────────
-name: Page deployment
+name: Selinium Test
 
 on:
   push:
@@ -13,32 +10,25 @@ on:
       - main
   workflow_dispatch:
 
-# Set permissions for GITHUB_TOKEN
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 env:
   FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
 
 jobs:
-  build:
-    name: Build Flutter Web
+  selenium-test:
+    name: Run Selinium Tests
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Use collaborator token if available, otherwise fallback to GITHUB_TOKEN
           token: ${{ secrets.COLLABORATOR_TOKEN || secrets.GITHUB_TOKEN }}
 
-      # Cache Flutter SDK
+      # 2. Cache Flutter SDK
       - name: Cache Flutter SDK
         id: flutter-cache
         uses: actions/cache@v4
@@ -48,7 +38,7 @@ jobs:
           restore-keys: |
             flutter-stable-${{ runner.os }}-
 
-      # Install Flutter (only on cache miss)
+      # 3. Install Flutter (only on cache miss)
       - name: Install Flutter SDK
         if: steps.flutter-cache.outputs.cache-hit != 'true'
         run: |
@@ -57,17 +47,35 @@ jobs:
             --depth 1 \
             "$FLUTTER_HOME"
 
+      # 4. Add Flutter to PATH
       - name: Add Flutter to PATH
         run: echo "$FLUTTER_HOME/bin" >> $GITHUB_PATH
 
+      # 5. Install Flutter dependencies
       - name: flutter pub get
         run: flutter pub get
 
-      # Build for the GitHub Pages sub-path /campus_mentor/
-      - name: Build Flutter Web for GitHub Pages
-        run: flutter build web --release --base-href /campus_mentor/ --dart-define=GROQ_KEY=${{ secrets.GROQ_API_KEY }}
+      # 6. Build Flutter Web (base-href=/ so local server serves it)
+      - name: Build Flutter Web
+        run: flutter build web --release --base-href /
 
-      # Set up Node.js for running Selenium tests
+      # 7. Start web server and wait until it's ready
+      - name: Start Flutter Web server on port 8080
+        run: |
+          cd build/web
+          python3 -m http.server 8080 &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          echo "Waiting for server to be ready..."
+          for i in $(seq 1 20); do
+            if curl -s http://127.0.0.1:8080 > /dev/null 2>&1; then
+              echo "✅ Server is ready on port 8080"
+              break
+            fi
+            echo "  Attempt $i/20 — waiting 2s..."
+            sleep 2
+          done
+
+      # 8. Set up Node.js 22
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -75,17 +83,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: test-cases-reports/selinium-test/package-lock.json
 
-      # Install test dependencies
+      # 9. Install Selenium test dependencies
       - name: Install Selenium test dependencies
         working-directory: test-cases-reports/selinium-test
         run: npm ci
 
-      # Run Selenium E2E Web tests
+      # 10. Run Selenium E2E Web tests
       - name: Run Selenium E2E Web Tests
         working-directory: test-cases-reports/selinium-test
         run: node run_web_tests.js
 
-      # Upload Excel report as artifact
+      # 11. Upload Excel report
       - name: Upload Selenium Excel report
         if: always()
         uses: actions/upload-artifact@v4
@@ -95,7 +103,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      # Add chart and summary to GITHUB_STEP_SUMMARY
+      # 12. Add chart and summary to GITHUB_STEP_SUMMARY
       - name: Generate Job Summary Chart
         if: always()
         run: |
@@ -128,38 +136,7 @@ jobs:
             echo "⚠️ Selenium test summary JSON not found. Skip summary generation." >> $GITHUB_STEP_SUMMARY
           fi
 
-      # Configure Pages uploader
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      # Package build/web as a Pages artifact
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web/
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      # Option A: Standard deployment to repository pages (uses GITHUB_TOKEN)
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      # Option B: Deployment using collaborator token (commented out by default)
-      # Uncomment the step below and set up COLLABORATOR_TOKEN secret if you want to deploy using a collaborator PAT
-      # - name: Deploy to Branch (Collaborator PAT fallback)
-      #   if: always() && secrets.COLLABORATOR_TOKEN != ''
-      #   uses: peaceiris/actions-gh-pages@v4
-      #   with:
-      #     github_token: ${{ secrets.COLLABORATOR_TOKEN }}
-      #     publish_dir: ./build/web
-      #     user_name: 'github-actions[bot]'
-      #     user_email: 'github-actions[bot]@users.noreply.github.com'
+      # 13. Stop the background web server
+      - name: Stop web server
+        if: always()
+        run: kill $SERVER_PID 2>/dev/null || true
