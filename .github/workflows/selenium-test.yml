@@ -59,21 +59,7 @@ jobs:
       - name: Build Flutter Web
         run: flutter build web --release --base-href /
 
-      # 7. Start web server and wait until it's ready
-      - name: Start Flutter Web server on port 8080
-        run: |
-          cd build/web
-          python3 -m http.server 8080 &
-          echo "SERVER_PID=$!" >> $GITHUB_ENV
-          echo "Waiting for server to be ready..."
-          for i in $(seq 1 20); do
-            if curl -s http://127.0.0.1:8080 > /dev/null 2>&1; then
-              echo "✅ Server is ready on port 8080"
-              break
-            fi
-            echo "  Attempt $i/20 — waiting 2s..."
-            sleep 2
-          done
+
 
       # 8. Set up Node.js 22
       - name: Set up Node.js 22
@@ -136,7 +122,4 @@ jobs:
             echo "⚠️ Selenium test summary JSON not found. Skip summary generation." >> $GITHUB_STEP_SUMMARY
           fi
 
-      # 13. Stop the background web server
-      - name: Stop web server
-        if: always()
-        run: kill $SERVER_PID 2>/dev/null || true
+
