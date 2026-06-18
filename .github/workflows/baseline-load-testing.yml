@@ -59,6 +59,18 @@ jobs:
       - name: Build Flutter Web
         run: flutter build web --release --base-href /
 
+      # 6.1. Build release APK
+      - name: Build release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      # 6.2. Upload APK artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+
       # 7. Install k6 (official Linux binary)
       - name: Install k6
         run: |
