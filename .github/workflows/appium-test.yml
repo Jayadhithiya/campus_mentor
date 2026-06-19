@@ -114,7 +114,7 @@ jobs:
         with:
           api-level: 29
           target: google_apis
-          arch: x86
+          arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none
           script: bash -c "cd $GITHUB_WORKSPACE/test-cases-reports/appium-test && node_modules/.bin/wdio wdio.conf.js"
