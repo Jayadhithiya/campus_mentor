@@ -62,7 +62,11 @@ function ensureServer() {
 
   console.log('🚀 Starting local HTTP server on port 8080...');
   const server = require('http').createServer((req, res) => {
-    let filePath = path.join(buildPath, req.url === '/' ? 'index.html' : req.url);
+    let reqUrl = req.url;
+    if (reqUrl.startsWith('/campus_mentor/')) {
+      reqUrl = reqUrl.substring('/campus_mentor'.length);
+    }
+    let filePath = path.join(buildPath, reqUrl === '/' ? 'index.html' : reqUrl);
     if (!fs.existsSync(filePath)) filePath = path.join(buildPath, 'index.html');
     const ext = path.extname(filePath);
     const mime = {

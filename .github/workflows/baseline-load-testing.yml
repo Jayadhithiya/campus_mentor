@@ -12,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 env:
   FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
@@ -57,7 +59,7 @@ jobs:
 
       # 6. Build Flutter Web
       - name: Build Flutter Web
-        run: flutter build web --release --base-href /
+        run: flutter build web --release --base-href /campus_mentor/ --dart-define=GROQ_KEY=${{ secrets.GROQ_API_KEY }}
 
       # 7. Install k6 (official Linux binary)
       - name: Install k6
@@ -127,3 +129,28 @@ jobs:
           else
             echo "⚠️ Load testing summary JSON not found. Skip summary generation." >> $GITHUB_STEP_SUMMARY
           fi
+
+      # 13. Configure Pages uploader
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 14. Package build/web as a Pages artifact
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: load-test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
