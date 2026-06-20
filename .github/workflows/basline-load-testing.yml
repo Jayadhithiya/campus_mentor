@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.COLLABORATOR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
