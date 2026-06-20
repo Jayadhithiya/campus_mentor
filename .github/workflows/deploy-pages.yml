@@ -4,7 +4,8 @@
 # Builds the Flutter web app and deploys to:
 #   https://jayadhithiya.github.io/campus_mentor/
 # ─────────────────────────────────────────────────────────────────────────────
-name: Deploy Web App
+name: Deploy pages
+run-name: Deploy pages
 
 on:
   workflow_dispatch:

@@ -3,6 +3,7 @@
 # Standalone Baseline Load Testing Workflow
 # ─────────────────────────────────────────────────────────────────────────────
 name: Baseline Load Testing
+run-name: Baseline Load Testing
 
 on:
   workflow_dispatch:

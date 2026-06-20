@@ -4,7 +4,8 @@
 # Flutter is installed via git clone (stable branch) — no Node.js action,
 # no Node 20 deprecation warnings. SDK is cached for speed.
 # ─────────────────────────────────────────────────────────────────────────────
-name: CI — Flutter Build & Test
+name: Deploy Web App
+run-name: Deploy Web App
 
 on:
   workflow_dispatch:

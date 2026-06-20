@@ -2,7 +2,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Standalone Appium Test Workflow
 # ─────────────────────────────────────────────────────────────────────────────
-name: Appium Test
+name: Appium Testing
+run-name: Appium Testing
 
 on:
   workflow_dispatch:
