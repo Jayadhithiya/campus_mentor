@@ -2,8 +2,6 @@ name: APK Application Deployment
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
   workflow_dispatch:

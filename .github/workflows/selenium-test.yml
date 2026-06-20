@@ -1,10 +1,12 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # ─────────────────────────────────────────────────────────────────────────────
-# Standalone Selenium Test Workflow
-# ─────────────────────────────────────────────────────────────────────────────
-name: Selenium Application Deployment
+name: Selenium Testing
+run-name: Selenium Testing
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
