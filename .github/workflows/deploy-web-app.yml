@@ -50,7 +50,15 @@ jobs:
       - name: Build Web App
         run: flutter build web --release
 
+      - name: Check Firebase Credentials
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAMPUSMENTOR_2485C }}${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "⚠️ WARNING: Firebase Service Account secret is not configured in GitHub Secrets."
+            echo "Please set up FIREBASE_SERVICE_ACCOUNT_CAMPUSMENTOR_2485C in your repository secrets to enable deployments."
+          fi
+
       - name: Deploy to Firebase Hosting
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAMPUSMENTOR_2485C || secrets.FIREBASE_SERVICE_ACCOUNT }}
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
