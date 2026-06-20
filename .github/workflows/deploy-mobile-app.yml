@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy Mobile App Workflow
+# ─────────────────────────────────────────────────────────────────────────────
+name: Deploy Mobile App
+run-name: Deploy Mobile App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
+
+jobs:
+  deploy-mobile-app:
+    name: Build & Upload Flutter Mobile APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Flutter SDK
+        id: flutter-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.FLUTTER_HOME }}
+          key: flutter-stable-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            flutter-stable-${{ runner.os }}-
+
+      - name: Install Flutter SDK
+        if: steps.flutter-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/flutter/flutter.git \
+            --branch stable \
+            --depth 1 \
+            "$FLUTTER_HOME"
+
+      - name: Add Flutter to PATH
+        run: echo "$FLUTTER_HOME/bin" >> $GITHUB_PATH
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Android Release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14

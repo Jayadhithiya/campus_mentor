@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# ─────────────────────────────────────────────────────────────────────────────
+# Dast Security Workflow
+# ─────────────────────────────────────────────────────────────────────────────
+name: Dast Security
+run-name: Dast Security
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_HOME: ${{ github.workspace }}/.flutter_sdk
+
+jobs:
+  dast-security:
+    name: Run DAST Security Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.COLLABORATOR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Cache Flutter SDK
+        id: flutter-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.FLUTTER_HOME }}
+          key: flutter-stable-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            flutter-stable-${{ runner.os }}-
+
+      - name: Install Flutter SDK
+        if: steps.flutter-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/flutter/flutter.git \
+            --branch stable \
+            --depth 1 \
+            "$FLUTTER_HOME"
+
+      - name: Add Flutter to PATH
+        run: echo "$FLUTTER_HOME/bin" >> $GITHUB_PATH
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: automated_test/requirements.txt
+
+      - name: Install python dependencies
+        run: pip install -r automated_test/requirements.txt
+
+      - name: Run DAST Pipeline
+        working-directory: automated_test
+        run: python dast_runner.py --run-tests
+
+      - name: Upload DAST Excel report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-security-excel-report
+          path: automated_test/security_test_report.xlsx
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload DAST JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-security-json-report
+          path: automated_test/report.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload DAST Markdown report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-security-markdown-report
+          path: automated_test/report.md
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Generate Job Summary Chart
+        if: always()
+        run: |
+          REPORT_JSON="automated_test/report.json"
+          if [ -f "$REPORT_JSON" ]; then
+            PASSED=$(jq -r '.summary.passed' "$REPORT_JSON")
+            FAILED=$(jq -r '.summary.failed' "$REPORT_JSON")
+            TOTAL=$(jq -r '.summary.total_tests' "$REPORT_JSON")
+            
+            CRITICAL=$(jq -r '.summary.critical' "$REPORT_JSON")
+            HIGH=$(jq -r '.summary.high' "$REPORT_JSON")
+            MEDIUM=$(jq -r '.summary.medium' "$REPORT_JSON")
+            LOW=$(jq -r '.summary.low' "$REPORT_JSON")
+            
+            echo "## 📊 DAST Security Analysis Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+            echo "pie title Security Tests Pass vs Fail" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Passed ✅\" : $PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "    \"Failed ❌\" : $FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔄 Execution Flow" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+            echo "graph TD" >> $GITHUB_STEP_SUMMARY
+            echo "    Start([Start Run]) --> Checkout[Checkout Repo]" >> $GITHUB_STEP_SUMMARY
+            echo "    Checkout --> SetupEnv[Setup Python & Flutter SDK]" >> $GITHUB_STEP_SUMMARY
+            echo "    SetupEnv --> RunDAST[Run DAST Python Suite]" >> $GITHUB_STEP_SUMMARY
+            echo "    RunDAST --> Remediate[Automated Security Remediation]" >> $GITHUB_STEP_SUMMARY
+            echo "    Remediate --> Report[Generate Excel & JSON Reports]" >> $GITHUB_STEP_SUMMARY
+            echo "    Report --> UploadReports[Upload DAST Reports]" >> $GITHUB_STEP_SUMMARY
+            echo "    UploadReports --> End([End Run])" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔴 **Critical** | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟠 **High** | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟡 **Medium** | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔵 **Low** | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See the uploaded \`report.md\` or \`security_test_report.xlsx\` for full findings details." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ DAST report JSON not found. Skip summary generation." >> $GITHUB_STEP_SUMMARY
+          fi
