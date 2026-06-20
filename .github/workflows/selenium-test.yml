@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 # ─────────────────────────────────────────────────────────────────────────────
-# Standalone Selinium Test Workflow
+# Standalone Selenium Test Workflow
 # ─────────────────────────────────────────────────────────────────────────────
-name: Selinium Test
+name: Selenium Application Deployment
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ env:
 
 jobs:
   selenium-test:
-    name: Run Selinium Tests
+    name: Run Selenium Tests
     runs-on: ubuntu-latest
 
     steps:
