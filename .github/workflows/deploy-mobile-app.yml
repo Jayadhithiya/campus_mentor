@@ -6,7 +6,7 @@ name: Deploy Mobile App
 run-name: Deploy Mobile App
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: write

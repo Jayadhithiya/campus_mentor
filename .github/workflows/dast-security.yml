@@ -6,7 +6,7 @@ name: Dast Security
 run-name: Dast Security
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: write

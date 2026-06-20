@@ -6,7 +6,7 @@ name: Deploy pages
 run-name: Deploy pages
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read

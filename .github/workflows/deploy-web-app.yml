@@ -6,7 +6,7 @@ name: Deploy Web App
 run-name: Deploy Web App
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read

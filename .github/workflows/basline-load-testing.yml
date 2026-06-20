@@ -6,7 +6,7 @@ name: Basline Load Testing
 run-name: Basline Load Testing
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: write

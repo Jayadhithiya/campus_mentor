@@ -6,7 +6,7 @@ name: Selenium Testing
 run-name: Selenium Testing
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: write

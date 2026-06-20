@@ -6,7 +6,7 @@ name: Appium Testing
 run-name: Appium Testing
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: write
