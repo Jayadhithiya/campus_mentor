@@ -125,6 +125,16 @@ JSON format:
   Future<void> _generateQuestions() async {
     setState(() => _isLoading = true);
 
+    if (!ApiKeys.isGroqKeyConfigured) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showError(
+          customMessage: 'Groq API Key is not configured. Please create a `.env` file at the root of the project with `GROQ_KEY=gsk_...` or set it in `lib/core/constants/api_keys.dart`. 🔑'
+        );
+      }
+      return;
+    }
+
     for (int attempt = 1; attempt <= 3; attempt++) {
       try {
         final response = await http.post(
@@ -193,6 +203,14 @@ JSON format:
           } catch (e) {
             debugPrint('Parse error attempt $attempt: $e');
           }
+        } else if (response.statusCode == 401 || response.body.contains('invalid_api_key')) {
+          if (mounted) {
+            setState(() => _isLoading = false);
+            _showError(
+              customMessage: 'Invalid or unauthorized Groq API key. Please check your configuration in `.env` or `api_keys.dart`. 🔑'
+            );
+          }
+          return;
         } else {
           debugPrint('Error $attempt: ${response.statusCode}');
         }
@@ -290,15 +308,15 @@ Future<void> _runCode() async {
   }
 }
 
-  void _showError() {
+  void _showError({String? customMessage}) {
     if (!mounted) return;
     setState(() => _isLoading = false);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Failed to load questions'),
-        content: const Text(
-            'Could not generate questions. Please check your internet and try again.'),
+        content: Text(
+            customMessage ?? 'Could not generate questions. Please check your internet and try again.'),
         actions: [
           TextButton(
             onPressed: () {
@@ -307,14 +325,15 @@ Future<void> _runCode() async {
             },
             child: const Text('Go Back'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _generateQuestions();
-            },
-            child: const Text('Retry',
-                style: TextStyle(color: Color(0xFF7C3AED))),
-          ),
+          if (customMessage == null)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _generateQuestions();
+              },
+              child: const Text('Retry',
+                  style: TextStyle(color: Color(0xFF7C3AED))),
+            ),
         ],
       ),
     );

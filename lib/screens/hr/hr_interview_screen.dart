@@ -151,6 +151,16 @@ JSON format:
   Future<void> _generateQuestions() async {
     setState(() => _isLoadingQuestions = true);
 
+    if (!ApiKeys.isGroqKeyConfigured) {
+      if (mounted) {
+        setState(() => _isLoadingQuestions = false);
+        _showError(
+          customMessage: 'Groq API Key is not configured. Please create a `.env` file at the root of the project with `GROQ_KEY=gsk_...` or set it in `lib/core/constants/api_keys.dart`. 🔑'
+        );
+      }
+      return;
+    }
+
     for (int attempt = 1; attempt <= 3; attempt++) {
       try {
         final response = await http.post(
@@ -211,6 +221,14 @@ JSON format:
           } catch (e) {
             debugPrint('Parse error: $e');
           }
+        } else if (response.statusCode == 401 || response.body.contains('invalid_api_key')) {
+          if (mounted) {
+            setState(() => _isLoadingQuestions = false);
+            _showError(
+              customMessage: 'Invalid or unauthorized Groq API key. Please check your configuration in `.env` or `api_keys.dart`. 🔑'
+            );
+          }
+          return;
         }
       } catch (e) {
         debugPrint('Exception: $e');
@@ -317,6 +335,15 @@ Score should be 1-10.''',
           setState(() => _isEvaluating = false);
           _addDefaultFeedback();
         }
+      } else if (response.statusCode == 401 || response.body.contains('invalid_api_key')) {
+        setState(() => _isEvaluating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid Groq API Key! Please check config. 🔑'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        _addDefaultFeedback();
       } else {
         setState(() => _isEvaluating = false);
         _addDefaultFeedback();
@@ -420,13 +447,13 @@ Score should be 1-10.''',
     }
   }
 
-  void _showError() {
+  void _showError({String? customMessage}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Failed to load questions'),
         content:
-            const Text('Please check internet and try again.'),
+            Text(customMessage ?? 'Please check internet and try again.'),
         actions: [
           TextButton(
             onPressed: () {
@@ -435,14 +462,15 @@ Score should be 1-10.''',
             },
             child: const Text('Go Back'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _generateQuestions();
-            },
-            child: const Text('Retry',
-                style: TextStyle(color: Color(0xFFE91E8C))),
-          ),
+          if (customMessage == null)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _generateQuestions();
+              },
+              child: const Text('Retry',
+                  style: TextStyle(color: Color(0xFFE91E8C))),
+            ),
         ],
       ),
     );

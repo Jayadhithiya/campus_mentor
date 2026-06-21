@@ -136,6 +136,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _messageController.clear();
     _scrollToBottom();
 
+    if (!ApiKeys.isGroqKeyConfigured) {
+      _addErrorMessage(
+        customMessage: 'Groq API Key is not configured. Please create a `.env` file at the root of the project with `GROQ_KEY=gsk_...` or set it in `lib/core/constants/api_keys.dart`. 🔑'
+      );
+      _scrollToBottom();
+      return;
+    }
+
     try {
       final systemContext = _buildContext();
 
@@ -173,6 +181,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           });
           _isTyping = false;
         });
+      } else if (response.statusCode == 401 || response.body.contains('invalid_api_key')) {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Body: ${response.body}');
+        _addErrorMessage(
+          customMessage: 'Invalid or unauthorized Groq API key. Please check your configuration in `.env` or `api_keys.dart`. 🔑'
+        );
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Body: ${response.body}');
@@ -186,11 +200,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _scrollToBottom();
   }
 
-  void _addErrorMessage() {
+  void _addErrorMessage({String? customMessage}) {
     setState(() {
       _messages.add({
         'role': 'assistant',
-        'text':
+        'text': customMessage ??
             'Sorry, I couldn\'t connect right now. Please check your internet connection and try again! 🔄',
         'time': _getTime(),
       });

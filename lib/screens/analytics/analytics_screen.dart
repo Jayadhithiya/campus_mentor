@@ -128,6 +128,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (!mounted) return;
     setState(() => _isLoadingPlan = true);
 
+    if (!ApiKeys.isGroqKeyConfigured) {
+      if (!mounted) return;
+      setState(() {
+        _aiPlan = 'Groq API Key is not configured. Please create a `.env` file at the root of the project with `GROQ_KEY=gsk_...` or set it in `lib/core/constants/api_keys.dart`. 🔑';
+        _isLoadingPlan = false;
+      });
+      return;
+    }
+
     try {
       final prompt =
           '''
@@ -175,6 +184,12 @@ Keep it concise, practical and motivating for a college student!
         if (!mounted) return;
         setState(() {
           _aiPlan = data['choices'][0]['message']['content'];
+          _isLoadingPlan = false;
+        });
+      } else if (response.statusCode == 401 || response.body.contains('invalid_api_key')) {
+        if (!mounted) return;
+        setState(() {
+          _aiPlan = 'Failed to generate plan: Invalid or unauthorized Groq API key. Please check your configuration in `.env` or `api_keys.dart`. 🔑';
           _isLoadingPlan = false;
         });
       } else {
