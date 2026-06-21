@@ -48,7 +48,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Web App
-        run: flutter build web --release
+        run: flutter build web --release --dart-define=GROQ_KEY=${{ secrets.GROQ_API_KEY }}
 
       - name: Check Firebase Credentials
         id: check_creds
