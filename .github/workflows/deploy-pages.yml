@@ -6,6 +6,9 @@ name: Deploy pages
 run-name: Deploy pages
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch: {}
 
 permissions:
