@@ -47,7 +47,7 @@ class _TechnicalTestScreenState extends State<TechnicalTestScreen> {
   Timer? _timer;
   final TextEditingController _codeController = TextEditingController();
 
-  static const String _groqKey = ApiKeys.groqKey;
+  static final String _groqKey = ApiKeys.groqKey;
 
   @override
   void initState() {

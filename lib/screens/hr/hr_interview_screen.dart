@@ -42,7 +42,7 @@ class _HRInterviewScreenState extends State<HRInterviewScreen> {
   int _timeLeft = 0;
   Timer? _timer;
 
-  static const String _groqKey = ApiKeys.groqKey;
+  static final String _groqKey = ApiKeys.groqKey;
 
   @override
   void initState() {

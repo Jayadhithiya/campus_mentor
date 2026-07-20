@@ -23,7 +23,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String _aiPlan = '';
   bool _isLoadingPlan = false;
 
-  static const String _groqKey = ApiKeys.groqKey;
+  static final String _groqKey = ApiKeys.groqKey;
 
   @override
   void initState() {

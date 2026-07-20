@@ -22,7 +22,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   List<Map<String, dynamic>> _subjects = [];
   List<Map<String, dynamic>> _assignments = [];
 
-  static const String _apiKey = ApiKeys.groqKey;
+  static final String _apiKey = ApiKeys.groqKey;
 
   @override
   void initState() {

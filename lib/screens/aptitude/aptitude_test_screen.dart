@@ -38,7 +38,7 @@ class _AptitudeTestScreenState extends State<AptitudeTestScreen> {
   int _timeLeft = 0;
   Timer? _timer;
 
-  static const String _apiKey = ApiKeys.groqKey;
+  static final String _apiKey = ApiKeys.groqKey;
   @override
   void initState() {
     super.initState();
