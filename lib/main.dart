@@ -16,16 +16,33 @@ final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await UserService.initNotifications();
-  
+
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('dotenv load error: $e');
+  }
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+    runApp(const _FirebaseErrorApp());
+    return;
+  }
+
+  try {
+    await UserService.initNotifications();
+  } catch (e) {
+    debugPrint('Notifications init error: $e');
+  }
+
   if (kIsWeb) {
     SemanticsBinding.instance.ensureSemantics();
   }
-  
+
   final prefs = await SharedPreferences.getInstance();
   final isDark = prefs.getBool('isDark') ?? false;
   themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
@@ -171,6 +188,42 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
+class _FirebaseErrorApp extends StatelessWidget {
+  const _FirebaseErrorApp();
 
-
-
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF1A1A2E),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 64),
+                const SizedBox(height: 20),
+                const Text(
+                  'Startup Error',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Firebase failed to initialize.\nPlease check your internet connection and try again.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0x99FFFFFF), fontSize: 14, height: 1.6),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
