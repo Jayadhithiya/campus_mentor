@@ -18,6 +18,11 @@ import json
 import argparse
 from datetime import datetime, timezone
 
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 # Ensure automated_test/ is in path for sibling imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

@@ -30,11 +30,21 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Create .env file from secrets
+        run: |
+          echo "GROQ_KEY=${{ secrets.GROQ_KEY || secrets.GROQ_API_KEY }}" >> .env
+          echo "FIREBASE_WEB_API_KEY=${{ secrets.FIREBASE_WEB_API_KEY }}" >> .env
+          echo "FIREBASE_WEB_APP_ID=${{ secrets.FIREBASE_WEB_APP_ID }}" >> .env
+          echo "FIREBASE_WEB_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_WEB_MESSAGING_SENDER_ID }}" >> .env
+          echo "FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}" >> .env
+          echo "FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }}" >> .env
+          echo "FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}" >> .env
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Build Web App
-        run: flutter build web --release --dart-define=GROQ_KEY=${{ secrets.GROQ_API_KEY }}
+        run: flutter build web --release --dart-define=GROQ_KEY=${{ secrets.GROQ_KEY || secrets.GROQ_API_KEY }}
 
       - name: Check Firebase Credentials
         id: check_creds

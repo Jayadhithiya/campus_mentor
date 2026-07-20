@@ -11,10 +11,16 @@ Test Categories:
 
 import re
 import os
+import sys
 import time
 import json
 import subprocess
 from datetime import datetime, timezone
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -27,7 +33,7 @@ SKIP_DIRS = {
     'build', '.git', '.venv', '.venv-1', 'node_modules',
     '.gradle', '.idea', '.dart_tool', 'automated_test',
     'e2e_tests', 'ios', 'android', 'windows', 'macos', 'linux',
-    '.github',
+    '.github', '.firebase',
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -666,7 +672,7 @@ def run_all_tests():
     ]
     results = []
     for fn in tests:
-        print(f'  ▸ {fn.__name__}...', end=' ', flush=True)
+        print(f'  > {fn.__name__}...', end=' ', flush=True)
         try:
             r = fn()
             results.append(r)
