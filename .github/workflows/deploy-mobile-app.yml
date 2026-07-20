@@ -10,10 +10,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'lib/**'
-      - 'pubspec.yaml'
-      - 'android/**'
 
 permissions:
   contents: write
