@@ -142,9 +142,14 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       debugPrint('Google sign in error: $e');
       if (mounted) {
+        String msg = 'Google sign in failed: $e';
+        if (e.toString().contains('unauthorized-domain')) {
+          final host = Uri.base.host;
+          msg = 'Domain "$host" is not authorized in Firebase! Add "$host" under Firebase Console > Authentication > Settings > Authorized domains.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google sign in failed: $e'),
+            content: Text(msg),
             backgroundColor: Colors.red,
           ),
         );
