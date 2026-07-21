@@ -1,76 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class InAppNotificationService {
-  static List<Map<String, dynamic>> getBaseNotifications() => [
-        {
-          'id': '1',
-          'title': 'Attendance Warning!',
-          'desc': 'DBMS attendance is at 68%. Attend next class!',
-          'time': '2 mins ago',
-          'icon': Icons.warning_amber_outlined,
-          'color': const Color(0xFFF59E0B),
-          'bg': const Color(0xFFFEF3C7),
-          'read': false,
-          'group': 'Today',
-        },
-        {
-          'id': '2',
-          'title': 'Assignment Due Tomorrow',
-          'desc': 'OS Assignment is due tomorrow at 11:59 PM.',
-          'time': '1 hour ago',
-          'icon': Icons.assignment_outlined,
-          'color': const Color(0xFFEF4444),
-          'bg': const Color(0xFFFEE2E2),
-          'read': false,
-          'group': 'Today',
-        },
-        {
-          'id': '3',
-          'title': 'AI Study Tip',
-          'desc': 'Practice Binary Trees � it\'s your weak area this week.',
-          'time': '3 hours ago',
-          'icon': Icons.lightbulb_outline,
-          'color': const Color(0xFF45B08C),
-          'bg': const Color(0xFFEEEDFE),
-          'read': false,
-          'group': 'Today',
-        },
-        {
-          'id': '4',
-          'title': 'Test Result',
-          'desc': 'Great job! You scored 84% in Aptitude today.',
-          'time': '5 hours ago',
-          'icon': Icons.emoji_events_outlined,
-          'color': const Color(0xFF22C55E),
-          'bg': const Color(0xFFDCFCE7),
-          'read': true,
-          'group': 'Today',
-        },
-        {
-          'id': '5',
-          'title': 'Streak Reminder',
-          'desc': 'Don\'t break your streak! Take a test today.',
-          'time': 'Yesterday',
-          'icon': Icons.local_fire_department_outlined,
-          'color': const Color(0xFFFF6B6B),
-          'bg': const Color(0xFFFFF1F1),
-          'read': true,
-          'group': 'Yesterday',
-        },
-        {
-          'id': '6',
-          'title': 'New AI Questions Ready',
-          'desc': 'Fresh DSA questions generated for you. Start practicing!',
-          'time': 'Yesterday',
-          'icon': Icons.auto_awesome_outlined,
-          'color': const Color(0xFF7C3AED),
-          'bg': const Color(0xFFEDE9FE),
-          'read': true,
-          'group': 'Yesterday',
-        },
-      ];
+  static List<Map<String, dynamic>> getBaseNotifications() => [];
 }
 
 class NotificationsScreen extends StatefulWidget {

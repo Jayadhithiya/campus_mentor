@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../core/constants/api_keys.dart';
+import '../../core/responsive.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -37,7 +38,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Load user info
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -48,7 +48,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               userDoc.data()?['department'] ?? 'Computer Science (CSE)';
         }
 
-        // Load aptitude history
         final aptSnap = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -60,7 +59,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             .map((doc) => {'id': doc.id, ...doc.data()})
             .toList();
 
-        // Load technical history
         final techSnap = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -72,7 +70,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             .map((doc) => {'id': doc.id, ...doc.data()})
             .toList();
 
-        // Load HR history
         final hrSnap = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -138,8 +135,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
 
     try {
-      final prompt =
-          '''
+      final prompt = '''
 Analyse this student's performance and create a personalised improvement plan.
 
 Student: $_userName
@@ -221,132 +217,269 @@ Keep it concise, practical and motivating for a college student!
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(color: colorScheme.primary),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: colorScheme.primary),
-            )
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
+      body: ResponsiveLayout(
+        mobile: RefreshIndicator(
+          onRefresh: _loadData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hi $_userName! 👋',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            'Your performance overview',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _loadData,
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.refresh,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                Row(
+                  children: [
+                    _buildStatCard(
+                      'Total Tests',
+                      '$_totalTests',
+                      Icons.quiz_outlined,
+                      const Color(0xFF45B08C),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      'Aptitude',
+                      '${_aptitudeAvg.toStringAsFixed(0)}%',
+                      Icons.calculate_outlined,
+                      const Color(0xFFF59E0B),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      'Technical',
+                      '${_technicalAvg.toStringAsFixed(0)}%',
+                      Icons.code_outlined,
+                      const Color(0xFF7C3AED),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    _buildStatCard(
+                      'HR Score',
+                      '${(_hrAvg / 10).toStringAsFixed(1)}/10',
+                      Icons.mic_outlined,
+                      const Color(0xFFE91E8C),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      'Best Aptitude',
+                      _aptitudeHistory.isEmpty
+                          ? 'N/A'
+                          : '${_aptitudeHistory.map((h) => (h['percentage'] as num?)?.toInt() ?? 0).reduce((a, b) => a > b ? a : b)}%',
+                      Icons.emoji_events_outlined,
+                      const Color(0xFF22C55E),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      'HR Tests',
+                      '${_hrHistory.length}',
+                      Icons.record_voice_over_outlined,
+                      const Color(0xFF00897B),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                _buildSectionTitle('Performance Overview', Icons.bar_chart),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildPerformanceBar(
+                        'Aptitude',
+                        _aptitudeAvg / 100,
+                        const Color(0xFFF59E0B),
+                        '${_aptitudeAvg.toStringAsFixed(1)}%',
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPerformanceBar(
+                        'Technical',
+                        _technicalAvg / 100,
+                        const Color(0xFF7C3AED),
+                        '${_technicalAvg.toStringAsFixed(1)}%',
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPerformanceBar(
+                        'HR Interview',
+                        _hrAvg / 100,
+                        const Color(0xFFE91E8C),
+                        '${(_hrAvg / 10).toStringAsFixed(1)}/10',
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                _buildSectionTitle('AI Study Plan', Icons.auto_awesome),
+                const SizedBox(height: 12),
+                _buildAIPlanCard(colorScheme),
+
+                const SizedBox(height: 24),
+                _buildRecentHistorySection(colorScheme),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+        desktop: _buildDesktopAnalyticsLayout(context, colorScheme),
+      ),
+    );
+  }
+
+  Widget _buildDesktopAnalyticsLayout(BuildContext context, ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
+                    Text(
+                      'Hi $_userName! 👋',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Here is your overall performance analytics & AI study recommendations.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: _loadData,
+                icon: Icon(Icons.refresh, color: colorScheme.primary, size: 18),
+                label: const Text('Refresh Data'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
 
-                    // Header
+          const SizedBox(height: 24),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Hi $_userName! ??',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                'Your performance overview',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: colorScheme.onSurface.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: _loadData,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.refresh,
-                              color: colorScheme.primary,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        _buildStatCard('Total Tests', '$_totalTests', Icons.quiz_outlined, const Color(0xFF45B08C)),
+                        const SizedBox(width: 12),
+                        _buildStatCard('Aptitude Avg', '${_aptitudeAvg.toStringAsFixed(0)}%', Icons.calculate_outlined, const Color(0xFFF59E0B)),
+                        const SizedBox(width: 12),
+                        _buildStatCard('Technical Avg', '${_technicalAvg.toStringAsFixed(0)}%', Icons.code_outlined, const Color(0xFF7C3AED)),
                       ],
                     ),
-
-                    const SizedBox(height: 20),
-
-                    // Overall stats
-                    Row(
-                      children: [
-                        _buildStatCard(
-                          'Total Tests',
-                          '$_totalTests',
-                          Icons.quiz_outlined,
-                          const Color(0xFF45B08C),
-                        ),
-                        const SizedBox(width: 12),
-                        _buildStatCard(
-                          'Aptitude',
-                          '${_aptitudeAvg.toStringAsFixed(0)}%',
-                          Icons.calculate_outlined,
-                          const Color(0xFFF59E0B),
-                        ),
-                        const SizedBox(width: 12),
-                        _buildStatCard(
-                          'Technical',
-                          '${_technicalAvg.toStringAsFixed(0)}%',
-                          Icons.code_outlined,
-                          const Color(0xFF7C3AED),
-                        ),
-                      ],
-                    ),
-
                     const SizedBox(height: 12),
-
                     Row(
                       children: [
-                        _buildStatCard(
-                          'HR Score',
-                          '${(_hrAvg / 10).toStringAsFixed(1)}/10',
-                          Icons.mic_outlined,
-                          const Color(0xFFE91E8C),
-                        ),
+                        _buildStatCard('HR Score', '${(_hrAvg / 10).toStringAsFixed(1)}/10', Icons.mic_outlined, const Color(0xFFE91E8C)),
                         const SizedBox(width: 12),
                         _buildStatCard(
                           'Best Aptitude',
                           _aptitudeHistory.isEmpty
-                              ? '�'
+                              ? 'N/A'
                               : '${_aptitudeHistory.map((h) => (h['percentage'] as num?)?.toInt() ?? 0).reduce((a, b) => a > b ? a : b)}%',
                           Icons.emoji_events_outlined,
                           const Color(0xFF22C55E),
                         ),
                         const SizedBox(width: 12),
-                        _buildStatCard(
-                          'HR Tests',
-                          '${_hrHistory.length}',
-                          Icons.record_voice_over_outlined,
-                          const Color(0xFF00897B),
-                        ),
+                        _buildStatCard('HR Tests', '${_hrHistory.length}', Icons.record_voice_over_outlined, const Color(0xFF00897B)),
                       ],
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
-                    // Performance bars
                     _buildSectionTitle('Performance Overview', Icons.bar_chart),
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
@@ -354,295 +487,279 @@ Keep it concise, practical and motivating for a college student!
                       ),
                       child: Column(
                         children: [
-                          _buildPerformanceBar(
-                            'Aptitude',
-                            _aptitudeAvg / 100,
-                            const Color(0xFFF59E0B),
-                            '${_aptitudeAvg.toStringAsFixed(1)}%',
-                          ),
+                          _buildPerformanceBar('Aptitude', _aptitudeAvg / 100, const Color(0xFFF59E0B), '${_aptitudeAvg.toStringAsFixed(1)}%'),
                           const SizedBox(height: 16),
-                          _buildPerformanceBar(
-                            'Technical',
-                            _technicalAvg / 100,
-                            const Color(0xFF7C3AED),
-                            '${_technicalAvg.toStringAsFixed(1)}%',
-                          ),
+                          _buildPerformanceBar('Technical', _technicalAvg / 100, const Color(0xFF7C3AED), '${_technicalAvg.toStringAsFixed(1)}%'),
                           const SizedBox(height: 16),
-                          _buildPerformanceBar(
-                            'HR Interview',
-                            _hrAvg / 100,
-                            const Color(0xFFE91E8C),
-                            '${(_hrAvg / 10).toStringAsFixed(1)}/10',
-                          ),
+                          _buildPerformanceBar('HR Interview', _hrAvg / 100, const Color(0xFFE91E8C), '${(_hrAvg / 10).toStringAsFixed(1)}/10'),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
-                    // AI Improvement Plan
+                    _buildRecentHistorySection(colorScheme),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 28),
+
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     _buildSectionTitle('AI Study Plan', Icons.auto_awesome),
                     const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_aiPlan.isEmpty && !_isLoadingPlan) ...[
-                            Text(
-                              'Get your personalised AI study plan!',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'AI will analyse your performance and create a custom 1-week study plan.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurface.withValues(alpha: 0.5),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: ElevatedButton.icon(
-                                onPressed: _totalTests == 0
-                                    ? null
-                                    : _generateAIPlan,
-                                icon: const Icon(
-                                  Icons.auto_awesome,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                label: Text(
-                                  _totalTests == 0
-                                      ? 'Take tests first to get plan'
-                                      : 'Generate My Study Plan',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF45B08C),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ] else if (_isLoadingPlan) ...[
-                            Center(
-                              child: Column(
-                                children: [
-                                  CircularProgressIndicator(
-                                    color: colorScheme.primary,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'AI is creating your plan...',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: colorScheme.onSurface.withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ] else ...[
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.auto_awesome,
-                                  color: colorScheme.primary,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Your Personalised Study Plan',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: _generateAIPlan,
-                                  child: Icon(
-                                    Icons.refresh,
-                                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                                    size: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            MarkdownBody(
-                              data: _aiPlan,
-                              styleSheet: MarkdownStyleSheet(
-                                p: TextStyle(
-                                  fontSize: 13,
-                                  color: colorScheme.onSurface,
-                                  height: 1.6,
-                                ),
-                                strong: TextStyle(
-                                  fontSize: 13,
-                                  color: colorScheme.onSurface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                h1: TextStyle(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                h2: TextStyle(
-                                  fontSize: 15,
-                                  color: colorScheme.onSurface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                h3: TextStyle(
-                                  fontSize: 14,
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                listBullet: TextStyle(
-                                  fontSize: 13,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+                    _buildAIPlanCard(colorScheme),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAIPlanCard(ColorScheme colorScheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_aiPlan.isEmpty && !_isLoadingPlan) ...[
+            Text(
+              'Get your personalised AI study plan!',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'AI will analyse your performance across Aptitude, Technical, and HR interviews to create a custom 1-week improvement plan.',
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: _totalTests == 0 ? null : _generateAIPlan,
+                icon: const Icon(
+                  Icons.auto_awesome,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                label: Text(
+                  _totalTests == 0
+                      ? 'Take tests first to get plan'
+                      : 'Generate My Study Plan',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF45B08C),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ] else if (_isLoadingPlan) ...[
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'AI is creating your plan...',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
-
-                    const SizedBox(height: 24),
-
-                    // Recent Aptitude Tests
-                    if (_aptitudeHistory.isNotEmpty) ...[
-                      _buildSectionTitle(
-                        'Recent Aptitude Tests',
-                        Icons.calculate_outlined,
-                      ),
-                      const SizedBox(height: 12),
-                      ..._aptitudeHistory
-                          .take(5)
-                          .map(
-                            (test) => _buildTestHistoryCard(
-                              test['category'] ?? 'Aptitude',
-                              '${test['difficulty']} � ${test['course']}',
-                              '${test['percentage']}%',
-                              _formatDate(test['createdAt']),
-                              const Color(0xFFF59E0B),
-                              Icons.calculate_outlined,
-                            ),
-                          ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Recent Technical Tests
-                    if (_technicalHistory.isNotEmpty) ...[
-                      _buildSectionTitle(
-                        'Recent Technical Tests',
-                        Icons.code_outlined,
-                      ),
-                      const SizedBox(height: 12),
-                      ..._technicalHistory
-                          .take(5)
-                          .map(
-                            (test) => _buildTestHistoryCard(
-                              test['subject'] ?? 'Technical',
-                              '${test['mode']} � ${test['difficulty']}',
-                              test['mode'] == 'Coding Challenge'
-                                  ? 'Submitted'
-                                  : '${test['percentage']}%',
-                              _formatDate(test['createdAt']),
-                              const Color(0xFF7C3AED),
-                              Icons.code_outlined,
-                            ),
-                          ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Recent HR Tests
-                    if (_hrHistory.isNotEmpty) ...[
-                      _buildSectionTitle(
-                        'Recent HR Interviews',
-                        Icons.mic_outlined,
-                      ),
-                      const SizedBox(height: 12),
-                      ..._hrHistory
-                          .take(5)
-                          .map(
-                            (test) => _buildTestHistoryCard(
-                              test['interviewType'] ?? 'HR',
-                              test['department'] ?? '',
-                              '${test['totalScore']}/10',
-                              _formatDate(test['createdAt']),
-                              const Color(0xFFE91E8C),
-                              Icons.mic_outlined,
-                            ),
-                          ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Empty state
-                    if (_totalTests == 0) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.bar_chart_outlined,
-                              size: 60,
-                              color: Color(0xFFCCCCCC),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No tests taken yet!',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Take Aptitude, Technical or HR tests\nto see your analytics here!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
+          ] else ...[
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  color: colorScheme.primary,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Your Personalised Study Plan',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _generateAIPlan,
+                  child: Icon(
+                    Icons.refresh,
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            MarkdownBody(
+              data: _aiPlan,
+              styleSheet: MarkdownStyleSheet(
+                p: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurface,
+                  height: 1.6,
+                ),
+                strong: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+                h1: TextStyle(
+                  fontSize: 16,
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+                h2: TextStyle(
+                  fontSize: 15,
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+                h3: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+                listBullet: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentHistorySection(ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_aptitudeHistory.isNotEmpty) ...[
+          _buildSectionTitle('Recent Aptitude Tests', Icons.calculate_outlined),
+          const SizedBox(height: 12),
+          ..._aptitudeHistory.take(5).map(
+                (test) => _buildTestHistoryCard(
+                  test['category'] ?? 'Aptitude',
+                  '${test['difficulty']} • ${test['course'] ?? ''}',
+                  '${test['percentage']}%',
+                  _formatDate(test['createdAt']),
+                  const Color(0xFFF59E0B),
+                  Icons.calculate_outlined,
+                ),
+              ),
+          const SizedBox(height: 16),
+        ],
+        if (_technicalHistory.isNotEmpty) ...[
+          _buildSectionTitle('Recent Technical Tests', Icons.code_outlined),
+          const SizedBox(height: 12),
+          ..._technicalHistory.take(5).map(
+                (test) => _buildTestHistoryCard(
+                  test['subject'] ?? 'Technical',
+                  '${test['mode']} • ${test['difficulty']}',
+                  test['mode'] == 'Coding Challenge' ? 'Submitted' : '${test['percentage']}%',
+                  _formatDate(test['createdAt']),
+                  const Color(0xFF7C3AED),
+                  Icons.code_outlined,
+                ),
+              ),
+          const SizedBox(height: 16),
+        ],
+        if (_hrHistory.isNotEmpty) ...[
+          _buildSectionTitle('Recent HR Interviews', Icons.mic_outlined),
+          const SizedBox(height: 12),
+          ..._hrHistory.take(5).map(
+                (test) => _buildTestHistoryCard(
+                  test['interviewType'] ?? 'HR',
+                  test['department'] ?? '',
+                  '${test['totalScore']}/10',
+                  _formatDate(test['createdAt']),
+                  const Color(0xFFE91E8C),
+                  Icons.mic_outlined,
+                ),
+              ),
+          const SizedBox(height: 16),
+        ],
+        if (_totalTests == 0)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.bar_chart_outlined,
+                  size: 60,
+                  color: Color(0xFFCCCCCC),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No tests taken yet!',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Take Aptitude, Technical or HR tests\nto see your analytics here!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -676,7 +793,7 @@ Keep it concise, practical and motivating for a college student!
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
         ),
         child: Column(
@@ -687,16 +804,18 @@ Keep it concise, practical and motivating for a college student!
             Text(
               value,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                  fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                fontSize: 10,
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
           ],
         ),
@@ -708,25 +827,25 @@ Keep it concise, practical and motivating for a college student!
     String label,
     double value,
     Color color,
-    String display,
+    String displayVal,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A2E),
-                ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
               ),
             ),
             Text(
-              display,
+              displayVal,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -735,14 +854,14 @@ Keep it concise, practical and motivating for a college student!
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: value.clamp(0.0, 1.0),
-            backgroundColor: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+            backgroundColor: color.withValues(alpha: 0.1),
             valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 10,
+            minHeight: 8,
           ),
         ),
       ],
@@ -769,8 +888,8 @@ Keep it concise, practical and motivating for a college student!
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 38,
+            height: 38,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
@@ -785,11 +904,12 @@ Keep it concise, practical and motivating for a college student!
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   subtitle,
                   style: TextStyle(
@@ -805,7 +925,7 @@ Keep it concise, practical and motivating for a college student!
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
+                  horizontal: 8,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
@@ -833,5 +953,3 @@ Keep it concise, practical and motivating for a college student!
     );
   }
 }
-
-

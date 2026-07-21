@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -76,31 +77,38 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      final googleSignIn = GoogleSignIn(
-        serverClientId:
-            '386966654332-ds3q9mbrtomulqpb6dbkbhboo1cjkb8h.apps.googleusercontent.com',
-      );
+      UserCredential userCredential;
 
-      // Sign out first so the account picker always appears
-      await googleSignIn.signOut();
+      if (kIsWeb) {
+        final googleProvider = GoogleAuthProvider();
+        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      } else {
+        final googleSignIn = GoogleSignIn(
+          serverClientId:
+              '386966654332-ds3q9mbrtomulqpb6dbkbhboo1cjkb8h.apps.googleusercontent.com',
+        );
 
-      final googleUser = await googleSignIn.signIn();
+        // Sign out first so the account picker always appears
+        await googleSignIn.signOut();
 
-      if (googleUser == null) {
-        setState(() => _isLoading = false);
-        return;
+        final googleUser = await googleSignIn.signIn();
+
+        if (googleUser == null) {
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        final googleAuth = await googleUser.authentication;
+
+        final credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+          accessToken: googleAuth.accessToken,
+        );
+
+        userCredential = await FirebaseAuth.instance.signInWithCredential(
+          credential,
+        );
       }
-
-      final googleAuth = await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-        accessToken: googleAuth.accessToken,
-      );
-
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
 
       final user = userCredential.user;
       if (user != null) {
@@ -149,14 +157,17 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
 
               // Logo row
               Row(
@@ -446,13 +457,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
 }
-
-
+}

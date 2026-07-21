@@ -1,6 +1,6 @@
 # 🛡️ DAST Security Test Report
 
-**Generated:** 2026-06-16 14:01 UTC  
+**Generated:** 2026-07-20 17:32 UTC  
 **Project:** campus_mentor (Flutter/Firebase)
 
 ---
@@ -11,9 +11,9 @@
 |--------|-------|
 | Endpoints Discovered | 14 |
 | Total Tests | 7 |
-| Passed ✅ | 6 |
-| Failed ❌ | 0 |
-| 🔴 Critical | 0 |
+| Passed ✅ | 5 |
+| Failed ❌ | 1 |
+| 🔴 Critical | 1 |
 | 🟠 High | 0 |
 | 🟡 Medium | 0 |
 | 🔵 Low | 1 |
@@ -45,7 +45,7 @@
 
 | ID | Severity | Category | Status | Title |
 |----|----------|----------|--------|-------|
-| TC-SEC-001 | ✅ PASS | Secret Exposure | ✅ PASS | Hardcoded Secrets in Source Code |
+| TC-SEC-001 | 🔴 Critical | Secret Exposure | ❌ FAIL | Hardcoded Secrets in Source Code |
 | TC-SEC-002 | ✅ PASS | Security Headers | ✅ PASS | Missing HTTP Security Headers in Web Build |
 | TC-SEC-003 | ✅ PASS | AuthN/AuthZ | ✅ PASS | Missing Auth Guards on Firestore Write Operations |
 | TC-SEC-004 | ✅ PASS | Input Validation | ✅ PASS | Missing Input Validation on User-Facing Text Fields |
@@ -59,7 +59,7 @@
 
 | Finding ID | Auto Fixed | Status | Files Changed | Details |
 |------------|------------|--------|---------------|---------|
-| TC-SEC-001 | ❌ No | Manual Fix Required | `—` | No action required |
+| TC-SEC-001 | ✅ Yes | PARTIAL | `automated_test/SECRET_ROTATION_REQUIRED.md` | Created SECRET_ROTATION_REQUIRED.md with rotation instructions |
 | TC-SEC-002 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-003 | ❌ No | Manual Fix Required | `—` | No action required |
 | TC-SEC-004 | ❌ No | Manual Fix Required | `—` | No action required |

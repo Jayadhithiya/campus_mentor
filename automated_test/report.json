@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-16 14:01 UTC",
+  "generated_at": "2026-07-20 17:32 UTC",
   "summary": {
     "endpoints_discovered": 14,
     "total_tests": 7,
-    "passed": 6,
-    "failed": 0,
-    "critical": 0,
+    "passed": 5,
+    "failed": 1,
+    "critical": 1,
     "high": 0,
     "medium": 0,
     "low": 1
@@ -115,15 +115,142 @@
       "id": "TC-SEC-001",
       "category": "Secret Exposure",
       "title": "Hardcoded Secrets in Source Code",
-      "severity": "PASS",
-      "status": "PASS",
+      "severity": "Critical",
+      "status": "FAIL",
       "endpoint": "source-scan (all files)",
       "method": "STATIC",
       "expected": "No hardcoded secrets",
-      "actual": "None found",
-      "recommendation": "No action required",
-      "details": [],
-      "auto_fixable": false
+      "actual": "21 potential secrets found [POST-FIX]",
+      "recommendation": "Move Firebase API keys to environment variables or use flutter_dotenv. Consider Firebase App Check to restrict API key misuse.",
+      "details": [
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Private Key",
+          "snippet": "-----BEGIN PRIVATE KEY-----"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 4,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "0ec0edc2c2376a81bc0f836d963691762ac34caf"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC4Z8wV"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nyrBB4ssXINr6hWmCaR6nkEC2nfU3dppboJT3PSqEjOp7OZHvWzZYPlM43nVCVzlT"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "ZUsXoN6XbvgRR5kh8J34Ia1h8Vlbhx3zQvpbxktJ1gexxWC3RjhqPkCmLw"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "n9QIdA4Y8fp5OqUDKkFcD5aJiiRrLvigsVQHq3iXfebC9mBtBWQuHJgjCcCMrg7IB"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "I8HA6SrHe8XS1ubSwjaKtSs29C9US6oOKlUj6WAmpyMXOrhDcB95VagBE"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "vAMWOrUmHsaSE8w4NxwhrJpiEiVSjCERsqXfzmbczADSPbTWq"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nuhhyC0DGpmwmSeIjOlLptaoSP9GPXEjfoIxpEpGXRtwtOAnYY1ujlPfwERub"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nzTnpZcmiBkuYfCg7kqt1w6rKVrqnzSC4Ga8XwGkQRf8Zpv6mn39nxC3OQahVIhoX"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nUknB9UkIBAZCWk6hIHfC4DC0YPy00uKgMjgj2dfHqOWVF"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "n5yAEm8HkZfJngNiR0JHSP9TSAwKBgQDIgsDT2FhLW9HbAOPJ7GqJbL47FHyWtQWl"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "jzhryigdvDNvQHX3HMgh7MFgDIwvxZZOLjWCZKXdE"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "LC1ul2Bj4an64iz7EY7facEfm5RZmUAtnLOlOTfMivap"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nS6aw02w0HQKBgQCiXD3noGUHyqdqYFojw1p7jTlWpfa96mkoZAYgCVafgN3p2DkH"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "nHJc1zvflRBAfFZ2pNHb9DTn1civuwbyydons2wWJJJVYbsSosyZD2q1bx0KeRIwK"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "meBxa6KutLp9Cp9bKrj6OGOwiC8q7VZoi2GZfy3NQ"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "fxpCPxXlA5OgB8PbH6OIk0G0NJEdp347Di70h20q9iiqWm"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "GBX6fuhQUQI4gorW3M51XdFAoGAILjr2yG0iOHQ9wGT8Cqg"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "tAc8LSA6f0VRIVdkBvNwwGS7CkQDfKxnrNMD3Wbv02Y"
+        },
+        {
+          "file": ".firebase\\campusmentor-2485c-firebase-adminsdk-fbsvc-0ec0edc2c2.json",
+          "line": 5,
+          "pattern": "Generic High-Entropy Token (40+ chars)",
+          "snippet": "ndS9kYEXwf4Z4TuqD5Bn1MYZrf3R9DenaCdeToRTImkkeuq0mVZyA"
+        }
+      ],
+      "auto_fixable": true
     },
     {
       "id": "TC-SEC-002",
@@ -227,13 +354,16 @@
   "remediation": [
     {
       "finding_id": "TC-SEC-001",
-      "auto_fixed": false,
-      "fix_status": "Manual Fix Required",
-      "files_changed": [],
+      "auto_fixed": true,
+      "fix_status": "PARTIAL",
+      "files_changed": [
+        "automated_test/SECRET_ROTATION_REQUIRED.md"
+      ],
       "commit_sha": "",
       "pr_number": "",
-      "verification_status": "Pending Manual Review",
-      "details": "No action required"
+      "verification_status": "Pending Re-test",
+      "details": "Created SECRET_ROTATION_REQUIRED.md with rotation instructions",
+      "manual_action": "Firebase API keys found in lib/firebase_options.dart. Rotate keys in Firebase Console. See automated_test/SECRET_ROTATION_REQUIRED.md"
     },
     {
       "finding_id": "TC-SEC-002",
