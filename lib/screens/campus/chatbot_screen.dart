@@ -154,7 +154,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           'Authorization': 'Bearer $_apiKey',
         },
         body: jsonEncode({
-          'model': 'llama-3.3-70b-versatile',
+          'model': 'qwen/qwen3.8-27b',
           'messages': [
             {
               'role': 'system',
